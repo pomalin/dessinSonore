@@ -2,10 +2,10 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dessin Sonore — V1.7 Web</title>
   <style>
-    * { box-sizing: border-box; touch-action: none; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #1a1a1a; color: #e0e0e0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     
     header { background: #242424; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
@@ -26,7 +26,9 @@
     /* Canvas / Zone visuelle */
     .canvas-container { flex: 1; min-height: 300px; background: #000; border-radius: 6px; position: relative; border: 1px solid #333; display: flex; flex-direction: column; }
     .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #202020; border-bottom: 1px solid #333; gap: 10px; }
-    canvas { flex: 1; width: 100%; height: 100%; background: #ffffff; cursor: crosshair; }
+    
+    /* Important : touch-action uniquement sur le canvas de dessin */
+    canvas { flex: 1; width: 100%; height: 100%; background: #ffffff; cursor: crosshair; touch-action: none; }
 
     /* Panneau de configuration */
     .sidebar { width: 100%; background: #222; padding: 15px; border-left: 1px solid #333; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
@@ -38,14 +40,25 @@
     .control { display: flex; flex-direction: column; gap: 4px; }
     label { font-size: 0.8rem; color: #bbb; display: flex; justify-content: space-between; }
     input[type="range"] { accent-color: #1976d2; width: 100%; }
-    input[type="number"], select { background: #333; border: 1px solid #444; color: #fff; padding: 6px; border-radius: 4px; font-size: 0.85rem; }
+    
+    /* Style spécifique pour autoriser l'interaction tactile/clic sur les menus déroulants */
+    select, input[type="number"] { 
+      background: #333; 
+      border: 1px solid #555; 
+      color: #fff; 
+      padding: 8px; 
+      border-radius: 4px; 
+      font-size: 0.9rem; 
+      touch-action: manipulation;
+      cursor: pointer;
+    }
 
     .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; color: #ccc; }
     .checkbox-label input { width: 16px; height: 16px; accent-color: #1976d2; }
 
     /* Boutons */
     .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    button.action-btn { padding: 8px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; background: #333; color: #fff; font-size: 0.8rem; }
+    button.action-btn { padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; background: #333; color: #fff; font-size: 0.8rem; touch-action: manipulation; }
     button.action-btn:hover { background: #444; }
     button.primary { background: #2e7d32; }
     button.primary:hover { background: #388e3c; }
@@ -91,7 +104,6 @@
         <div class="toolbar">
           <input type="file" id="file-input" accept="image/*" style="display:none;">
           <button class="action-btn secondary" id="btn-browse">📂 Importer une image</button>
-          <span style="font-size:0.75rem; color:#aaa;">Glisser la souris pour recadrer</span>
         </div>
         <canvas id="importCanvas"></canvas>
       </div>
@@ -126,7 +138,7 @@
         <div class="section-title">🔊 Sonification</div>
         
         <div class="control" style="margin-bottom: 10px;">
-          <label>Moteur de synthèse</label>
+          <label for="engine-select">Moteur de synthèse</label>
           <select id="engine-select">
             <option value="spectral">Spectral (ANS)</option>
             <option value="mclaren">McLaren</option>
@@ -135,8 +147,8 @@
         </div>
 
         <div class="control" style="margin-bottom: 10px;">
-          <label>Durée (s) : <span id="duration-val">6</span>s</label>
-          <input type="range" id="duration" min="0.5" max="12" value="6" step="0.5">
+          <label>Durée (s) : <span id="duration-val">4</span>s</label>
+          <input type="range" id="duration" min="0.5" max="12" value="4" step="0.5">
         </div>
 
         <!-- Paramètres spécifiques ANS -->
@@ -148,12 +160,12 @@
             </div>
             <div class="control">
               <label>Freq max (Hz)</label>
-              <input type="number" id="fmax" value="5000">
+              <input type="number" id="fmax" value="4000">
             </div>
           </div>
           <div class="control">
-            <label>Résolution fréq. : <span id="bins-val">120</span></label>
-            <input type="range" id="nbins" min="32" max="250" value="120">
+            <label>Résolution fréq. : <span id="bins-val">60</span></label>
+            <input type="range" id="nbins" min="20" max="150" value="60">
           </div>
         </div>
 
@@ -172,11 +184,7 @@
         <div class="btn-group" style="margin-bottom: 8px;">
           <button class="action-btn primary" id="btn-play">▶ Écouter</button>
           <button class="action-btn danger" id="btn-stop">■ Stop</button>
-          <button class="action-btn secondary" id="btn-export-wav">💾 WAV</button>
-        </div>
-        <div class="btn-group">
-          <button class="action-btn" id="btn-export-img">🖼 Image</button>
-          <button class="action-btn" id="btn-spectrogram" style="grid-column: span 2;">📊 Spectrogramme</button>
+          <button class="action-btn secondary" id="btn-spectrogram">📊 Voir</button>
         </div>
       </div>
 
@@ -192,7 +200,7 @@
         <h3>Spectrogramme du son généré</h3>
         <button class="action-btn danger" id="btn-close-modal">✕ Fermer</button>
       </div>
-      <canvas id="spectroCanvas" style="height: 300px; background:#000;"></canvas>
+      <canvas id="spectroCanvas" style="height: 250px; background:#000; touch-action: auto;"></canvas>
     </div>
   </div>
 
@@ -207,9 +215,7 @@
     let activeTab = 'draw';
     let isDrawing = false;
     let lastX = 0, lastY = 0;
-    let importedImage = null;
 
-    // Redimensionnement réactif
     function initCanvas() {
       const pRect = paintCanvas.parentElement.getBoundingClientRect();
       paintCanvas.width = pRect.width;
@@ -226,7 +232,7 @@
     window.addEventListener('resize', initCanvas);
     setTimeout(initCanvas, 100);
 
-    // Navigation Onglets
+    // Onglets
     document.getElementById('tab-draw-btn').onclick = () => {
       activeTab = 'draw';
       document.getElementById('draw-view').style.display = 'flex';
@@ -243,7 +249,7 @@
       document.getElementById('tab-draw-btn').classList.remove('active');
     };
 
-    // Gestion de la brosse
+    // Brosse
     const brushSlider = document.getElementById('brush-size');
     brushSlider.oninput = (e) => document.getElementById('brush-val').textContent = e.target.value;
 
@@ -262,7 +268,7 @@
 
     paintCanvas.onmousemove = paintCanvas.ontouchmove = (e) => {
       if (!isDrawing) return;
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       const p = getPos(e, paintCanvas);
       pCtx.beginPath();
       pCtx.moveTo(lastX, lastY);
@@ -280,7 +286,7 @@
       pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
     };
 
-    // Importer une image
+    // Importer Image
     const fileInput = document.getElementById('file-input');
     document.getElementById('btn-browse').onclick = () => fileInput.click();
     fileInput.onchange = (e) => {
@@ -289,16 +295,13 @@
       const reader = new FileReader();
       reader.onload = (event) => {
         const img = new Image();
-        img.onload = () => {
-          importedImage = img;
-          iCtx.drawImage(img, 0, 0, importCanvas.width, importCanvas.height);
-        };
+        img.onload = () => iCtx.drawImage(img, 0, 0, importCanvas.width, importCanvas.height);
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     };
 
-    // Mise à jour de la vue des paramètres
+    // Sliders
     document.getElementById('contrast').oninput = (e) => document.getElementById('contrast-val').textContent = parseFloat(e.target.value).toFixed(2);
     document.getElementById('brightness').oninput = (e) => document.getElementById('brightness-val').textContent = parseFloat(e.target.value).toFixed(2);
     document.getElementById('duration').oninput = (e) => document.getElementById('duration-val').textContent = e.target.value;
@@ -310,7 +313,7 @@
       document.getElementById('mclaren-controls').style.display = engineSelect.value === 'mclaren' ? 'block' : 'none';
     };
 
-    // --- MOTEURS DE SONIFICATION & AUDIO ---
+    // --- AUDIO ENGINE ---
     let audioCtx = null;
     let currentSource = null;
     let lastAudioBuffer = null;
@@ -320,7 +323,6 @@
       const ctx = activeTab === 'draw' ? pCtx : iCtx;
       const imgData = ctx.getImageData(0, 0, cv.width, cv.height);
       
-      // Traitement Image (Contraste, Luminosité, Inversion)
       const data = imgData.data;
       const contrast = parseFloat(document.getElementById('contrast').value);
       const brightness = parseFloat(document.getElementById('brightness').value);
@@ -363,9 +365,9 @@
 
           for (let i = 0; i < totalSamples; i++) {
             let x = Math.floor((i / totalSamples) * (w - 1));
-            let amp = 1.0 - data[y * w + x]; // Encre noire = amplitude
+            let amp = 1.0 - data[y * w + x];
             if (amp > 0.05) {
-              channel[i] += Math.sin(2 * Math.PI * freq * (i / sampleRate)) * amp * 0.02;
+              channel[i] += Math.sin(2 * Math.PI * freq * (i / sampleRate)) * amp * 0.03;
             }
           }
         }
@@ -390,7 +392,7 @@
           channel[i] = Math.sin(phase) * (totalWeight > 0.5 ? 0.7 : 0);
         }
       } 
-      else { // Variable Density
+      else { // Density
         for (let i = 0; i < totalSamples; i++) {
           let x = Math.floor((i / totalSamples) * (w - 1));
           let sum = 0;
@@ -400,7 +402,7 @@
         }
       }
 
-      // Normalisation & Fade
+      // Normalisation
       let maxAmp = 0;
       for (let i = 0; i < totalSamples; i++) maxAmp = Math.max(maxAmp, Math.abs(channel[i]));
       if (maxAmp > 0) {
@@ -411,7 +413,11 @@
       return buffer;
     }
 
-    document.getElementById('btn-play').onclick = () => {
+    // Déblocage audio Mobile + Lecture
+    document.getElementById('btn-play').onclick = async () => {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
       if (currentSource) currentSource.stop();
       const buffer = generateAudio();
       currentSource = audioCtx.createBufferSource();
@@ -426,7 +432,7 @@
       document.getElementById('status-bar').textContent = "■ Arrêté.";
     };
 
-    // Spectrogramme Modal
+    // Modal
     const modal = document.getElementById('modal-spectro');
     document.getElementById('btn-spectrogram').onclick = () => {
       if (!lastAudioBuffer) generateAudio();
@@ -435,7 +441,7 @@
       const canvas = document.getElementById('spectroCanvas');
       const ctx = canvas.getContext('2d');
       canvas.width = canvas.parentElement.clientWidth - 30;
-      canvas.height = 280;
+      canvas.height = 250;
 
       const data = lastAudioBuffer.getChannelData(0);
       ctx.fillStyle = "#000";
