@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Sonorisation — Web</title>
+  <style>
+    * { box-sizing: border-box; touch-action: none; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #121212; color: #e0e0e0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    header { background: #1f1f1f; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+    h1 { font-size: 1.1rem; letter-spacing: 1px; color: #fff; }
+    .main-container { display: flex; flex: 1; flex-direction: column; gap: 10px; padding: 10px; overflow: hidden; }
+    @media (min-width: 768px) { .main-container { flex-direction: row; } }
+    
+    .panel { background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #2a2a2a; display: flex; flex-direction: column; gap: 12px; }
+    .sidebar { width: 100%; }
+    @media (min-width: 768px) { .sidebar { width: 280px; } }
+    
+    .canvas-container { flex: 1; display: flex; flex-direction: column; background: #000; border-radius: 8px; overflow: hidden; position: relative; border: 1px solid #333; }
+    canvas { width: 100%; height: 100%; background: #ffffff; cursor: crosshair; }
+    
+    .control-group { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 0.85rem; color: #aaa; }
+    input[type="range"] { width: 100%; accent-color: #2196f3; }
+    .checkbox-group { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; }
+    .checkbox-group input { width: 18px; height: 18px; }
+    
+    .btn-group { display: flex; gap: 8px; }
+    button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; background: #2b2b2b; color: #fff; transition: background 0.2s; }
+    button:active { opacity: 0.8; }
+    button.primary { background: #2e7d32; }
+    button.danger { background: #c62828; }
+    button.secondary { background: #1565c0; }
+    
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #181818; border-bottom: 1px solid #2a2a2a; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SONORISATION</h1>
+    <span style="font-size: 0.8rem; color: #888;">Web / Mobile</span>
+  </header>
+
+  <div class="main-container">
+    
+    <!-- Panneau de paramètres -->
+    <div class="panel sidebar">
+      <div class="control-group">
+        <label for="duration">Durée (secondes) : <b id="duration-val">4</b>s</label>
+        <input type="range" id="duration" min="1" max="10" value="4" step="0.5">
+      </div>
+
+      <div class="control-group">
+        <label for="freq">Fréquence de base : <b id="freq-val">220</b> Hz</label>
+        <input type="range" id="freq" min="60" max="880" value="220" step="10">
+      </div>
+
+      <label class="checkbox-group">
+        <input type="checkbox" id="invert-bw"> Inverser Noir/Blanc
+      </label>
+
+      <hr style="border: 0; border-top: 1px solid #333; margin: 5px 0;">
+
+      <div class="btn-group">
+        <button id="btn-play" class="primary">▶ Jouer</button>
+        <button id="btn-stop" class="danger">■ Stop</button>
+      </div>
+    </div>
+
+    <!-- Zone de dessin -->
+    <div class="canvas-container">
+      <div class="top-bar">
+        <div style="display:flex; align-items:center; gap: 10px; flex: 1; max-width: 300px;">
+          <label style="white-space: nowrap;">Épaisseur :</label>
+          <input type="range" id="brush-size" min="1" max="30" value="8">
+        </div>
+        <button id="btn-clear" style="flex: initial; padding: 6px 12px;" class="secondary">Effacer</button>
+      </div>
+      <canvas id="paintCanvas"></canvas>
+    </div>
+
+  </div>
+
+  <script>
+    const canvas = document.getElementById('paintCanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    
+    // Sliders & Controls
+    const brushSizeInput = document.getElementById('brush-size');
+    const durationInput = document.getElementById('duration');
+    const durationVal = document.getElementById('duration-val');
+    const freqInput = document.getElementById('freq');
+    const freqVal = document.getElementById('freq-val');
+    const invertBwCheckbox = document.getElementById('invert-bw');
+    
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let audioCtx = null;
+    let currentSource = null;
+
+    // Adaptation de la résolution du canvas
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      
+      // Remplir en blanc par défaut
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Réinsérer le dessin après redimensionnement
+      if (imgData.width > 0 && imgData.height > 0) {
+        ctx.putImageData(imgData, 0, 0);
+      }
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 50);
+
+    // Mettre à jour les labels
+    durationInput.addEventListener('input', (e) => durationVal.textContent = e.target.value);
+    freqInput.addEventListener('input', (e) => freqVal.textContent = e.target.value);
+
+    // Gestion du dessin (Touch + Mouse)
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function startDrawing(e) {
+      isDrawing = true;
+      const pos = getPos(e);
+      lastX = pos.x;
+      lastY = pos.y;
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const pos = getPos(e);
+
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = brushSizeInput.value;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      lastX = pos.x;
+      lastY = pos.y;
+    }
+
+    function stopDrawing() { isDrawing = false; }
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDrawing);
+
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    window.addEventListener('touchend', stopDrawing);
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Moteur de synthèse audio (Variable Density / Optical Sound)
+    function generateAndPlay() {
+      if (currentSource) { currentSource.stop(); }
+      
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      const duration = parseFloat(durationInput.value);
+      const baseFreq = parseFloat(freqInput.value);
+      const sampleRate = audioCtx.sampleRate;
+      const totalSamples = Math.floor(sampleRate * duration);
+      
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imgData.data;
+      const w = canvas.width;
+      const h = canvas.height;
+      const invert = invertBwCheckbox.checked;
+
+      // Scan horizontal de la densité
+      const columnDensities = new Float32Array(w);
+      for (let x = 0; x < w; x++) {
+        let sum = 0;
+        for (let y = 0; y < h; y++) {
+          const idx = (y * w + x) * 4;
+          const gray = (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
+          sum += gray;
+        }
+        let avg = sum / h / 255.0; // Normalisé 0.0 -> 1.0
+        columnDensities[x] = invert ? avg : (1.0 - avg);
+      }
+
+      // Synthèse audio buffer
+      const buffer = audioCtx.createBuffer(1, totalSamples, sampleRate);
+      const channelData = buffer.getChannelData(0);
+
+      let phase = 0;
+      for (let i = 0; i < totalSamples; i++) {
+        const progress = i / totalSamples;
+        const colIndex = Math.min(Math.floor(progress * w), w - 1);
+        const amplitude = columnDensities[colIndex];
+
+        // Oscillation modulée par la densité
+        phase += (2 * Math.PI * baseFreq) / sampleRate;
+        channelData[i] = Math.sin(phase) * amplitude;
+      }
+
+      // Fondu d'entrée/sortie pour éviter les clics
+      const fadeLen = Math.floor(sampleRate * 0.02);
+      for (let i = 0; i < fadeLen; i++) {
+        channelData[i] *= (i / fadeLen);
+        channelData[totalSamples - 1 - i] *= (i / fadeLen);
+      }
+
+      // Jouer le son
+      currentSource = audioCtx.createBufferSource();
+      currentSource.buffer = buffer;
+      currentSource.connect(audioCtx.destination);
+      currentSource.start();
+    }
+
+    document.getElementById('btn-play').addEventListener('click', generateAndPlay);
+    document.getElementById('btn-stop').addEventListener('click', () => {
+      if (currentSource) { currentSource.stop(); }
+    });
+  </script>
+</body>
+</html>
