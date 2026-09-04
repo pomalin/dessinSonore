@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dessin Sonore — V1.9.1 Web</title>
+  <title>Dessin Sonore — V2.0 Web</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a1a; color: #e0e0e0; display: flex; flex-direction: column; min-height: 100vh; }
@@ -16,13 +16,9 @@
     @media (min-width: 900px) { .main-layout { flex-direction: row; height: calc(100vh - 50px); } }
 
     .workspace { flex: 1; display: flex; flex-direction: column; background: #121212; padding: 10px; gap: 10px; }
-    
-    .tabs { display: flex; background: #252525; border-radius: 6px; padding: 3px; gap: 3px; }
-    .tab-btn { flex: 1; padding: 10px; background: transparent; border: none; color: #aaa; font-weight: bold; border-radius: 4px; font-size: 0.9rem; }
-    .tab-btn.active { background: #3a3a3a; color: #fff; }
 
     .canvas-container { flex: 1; background: #000; border-radius: 6px; border: 1px solid #333; display: flex; flex-direction: column; min-height: 300px; position: relative; }
-    .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #202020; border-bottom: 1px solid #333; gap: 10px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #202020; border-bottom: 1px solid #333; gap: 10px; flex-wrap: wrap; }
     
     canvas.paint-area { width: 100%; height: 100%; background: #ffffff; touch-action: none; display: block; flex: 1; }
 
@@ -54,7 +50,7 @@
     .checkbox-label input { width: 20px; height: 20px; accent-color: #2196f3; }
 
     .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    button.action-btn { padding: 14px 8px; border: none; border-radius: 6px; font-weight: bold; background: #333; color: #fff; font-size: 0.85rem; text-align: center; }
+    button.action-btn { padding: 12px 8px; border: none; border-radius: 6px; font-weight: bold; background: #333; color: #fff; font-size: 0.85rem; text-align: center; cursor: pointer; }
     button.primary { background: #2e7d32; }
     button.danger { background: #c62828; }
     button.secondary { background: #1565c0; }
@@ -66,36 +62,25 @@
 <body>
 
   <header>
-    <h1>DESSIN SONORE — V1.9.1</h1>
+    <h1>DESSIN SONORE — V2.0</h1>
     <span id="audio-indicator">AUDIO: PRÊT</span>
   </header>
 
   <div class="main-layout">
     
     <div class="workspace">
-      <div class="tabs">
-        <button type="button" class="tab-btn active" id="tab-draw-btn">🎨 Dessiner</button>
-        <button type="button" class="tab-btn" id="tab-import-btn">🖼 Importer</button>
-      </div>
-
-      <div id="draw-view" class="canvas-container">
+      <div class="canvas-container">
         <div class="toolbar">
           <div style="display:flex; align-items:center; gap: 8px; flex: 1;">
             <label style="white-space:nowrap; margin:0;">Épaisseur:</label>
             <input type="range" id="brush-size" min="1" max="25" value="6">
             <span id="brush-val" style="font-size:0.8rem;">6</span>
           </div>
+          <input type="file" id="file-input" accept="image/*" style="display:none;">
+          <button type="button" class="action-btn secondary" id="btn-browse">📂 Importer Image</button>
           <button type="button" class="action-btn" id="btn-clear">⌫ Effacer</button>
         </div>
         <canvas id="paintCanvas" width="800" height="600" class="paint-area"></canvas>
-      </div>
-
-      <div id="import-view" class="canvas-container" style="display:none;">
-        <div class="toolbar">
-          <input type="file" id="file-input" accept="image/*" style="display:none;">
-          <button type="button" class="action-btn secondary" id="btn-browse">📂 Importer une image</button>
-        </div>
-        <canvas id="importCanvas" width="800" height="600" class="paint-area"></canvas>
       </div>
     </div>
 
@@ -212,35 +197,23 @@
 
     const paintCanvas = document.getElementById('paintCanvas');
     const pCtx = paintCanvas.getContext('2d', { willReadFrequently: true });
-    const importCanvas = document.getElementById('importCanvas');
-    const iCtx = importCanvas.getContext('2d', { willReadFrequently: true });
 
-    let activeTab = 'draw';
+    // Canvas hors-champ pour conserver l'image source brute sans filtres
+    const rawCanvas = document.createElement('canvas');
+    rawCanvas.width = paintCanvas.width;
+    rawCanvas.height = paintCanvas.height;
+    const rawCtx = rawCanvas.getContext('2d', { willReadFrequently: true });
+
+    function clearCanvas() {
+      pCtx.fillStyle = "#ffffff";
+      pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      rawCtx.fillStyle = "#ffffff";
+      rawCtx.fillRect(0, 0, rawCanvas.width, rawCanvas.height);
+    }
+    clearCanvas();
+
     let isDrawing = false;
     let lastX = 0, lastY = 0;
-
-    // Initialisation unique du fond blanc
-    pCtx.fillStyle = "#ffffff";
-    pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
-
-    iCtx.fillStyle = "#111111";
-    iCtx.fillRect(0, 0, importCanvas.width, importCanvas.height);
-
-    bindTouchClick('tab-draw-btn', () => {
-      activeTab = 'draw';
-      document.getElementById('draw-view').style.display = 'flex';
-      document.getElementById('import-view').style.display = 'none';
-      document.getElementById('tab-draw-btn').classList.add('active');
-      document.getElementById('tab-import-btn').classList.remove('active');
-    });
-
-    bindTouchClick('tab-import-btn', () => {
-      activeTab = 'import';
-      document.getElementById('draw-view').style.display = 'none';
-      document.getElementById('import-view').style.display = 'flex';
-      document.getElementById('tab-import-btn').classList.add('active');
-      document.getElementById('tab-draw-btn').classList.remove('active');
-    });
 
     const brushSlider = document.getElementById('brush-size');
     brushSlider.oninput = (e) => document.getElementById('brush-val').textContent = e.target.value;
@@ -268,17 +241,27 @@
     function draw(e) {
       if (!isDrawing) return;
       const p = getPos(e);
-      pCtx.beginPath();
-      pCtx.moveTo(lastX, lastY);
-      pCtx.lineTo(p.x, p.y);
-      pCtx.strokeStyle = "#000000";
-      pCtx.lineWidth = brushSlider.value;
-      pCtx.lineCap = "round";
-      pCtx.stroke();
+      
+      // Dessin simultané sur l'écran et le buffer brut
+      [pCtx, rawCtx].forEach(ctx => {
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = brushSlider.value;
+        ctx.lineCap = "round";
+        ctx.stroke();
+      });
+
       lastX = p.x; lastY = p.y;
     }
 
-    function stopDraw() { isDrawing = false; }
+    function stopDraw() { 
+      if (isDrawing) {
+        isDrawing = false;
+        applyFilters(); // Applique l'inversion/contraste directement après le tracé
+      }
+    }
 
     paintCanvas.addEventListener('mousedown', startDraw);
     paintCanvas.addEventListener('mousemove', draw);
@@ -288,11 +271,9 @@
     paintCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
     paintCanvas.addEventListener('touchend', stopDraw);
 
-    bindTouchClick('btn-clear', () => {
-      pCtx.fillStyle = "#ffffff";
-      pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
-    });
+    bindTouchClick('btn-clear', clearCanvas);
 
+    // Gestions des imports d'images
     const fileInput = document.getElementById('file-input');
     bindTouchClick('btn-browse', () => fileInput.click());
     fileInput.onchange = (e) => {
@@ -301,14 +282,53 @@
       const reader = new FileReader();
       reader.onload = (evt) => {
         const img = new Image();
-        img.onload = () => iCtx.drawImage(img, 0, 0, importCanvas.width, importCanvas.height);
+        img.onload = () => {
+          clearCanvas();
+          // Conservation des proportions (Fit Center)
+          const scale = Math.min(paintCanvas.width / img.width, paintCanvas.height / img.height);
+          const x = (paintCanvas.width / 2) - (img.width / 2) * scale;
+          const y = (paintCanvas.height / 2) - (img.height / 2) * scale;
+
+          rawCtx.drawImage(img, x, y, img.width * scale, img.height * scale);
+          applyFilters();
+        };
         img.src = evt.target.result;
       };
       reader.readAsDataURL(file);
     };
 
-    document.getElementById('contrast').oninput = (e) => document.getElementById('contrast-val').textContent = parseFloat(e.target.value).toFixed(2);
-    document.getElementById('brightness').oninput = (e) => document.getElementById('brightness-val').textContent = parseFloat(e.target.value).toFixed(2);
+    // Application dynamique des traitements d'image (Contraste / Luminosité / Inversion N/B)
+    function applyFilters() {
+      const contrast = parseFloat(document.getElementById('contrast').value);
+      const brightness = parseFloat(document.getElementById('brightness').value);
+      const invertBW = document.getElementById('invert-bw').checked;
+
+      const imgData = rawCtx.getImageData(0, 0, rawCanvas.width, rawCanvas.height);
+      const data = imgData.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        let gray = (data[i] + data[i+1] + data[i+2]) / 3;
+        gray = ((gray - 128) * contrast + 128) * brightness;
+        gray = Math.max(0, Math.min(255, gray));
+        
+        if (invertBW) gray = 255 - gray;
+
+        data[i] = gray;
+        data[i+1] = gray;
+        data[i+2] = gray;
+      }
+      pCtx.putImageData(imgData, 0, 0);
+    }
+
+    document.getElementById('contrast').oninput = (e) => {
+      document.getElementById('contrast-val').textContent = parseFloat(e.target.value).toFixed(2);
+      applyFilters();
+    };
+    document.getElementById('brightness').oninput = (e) => {
+      document.getElementById('brightness-val').textContent = parseFloat(e.target.value).toFixed(2);
+      applyFilters();
+    };
+    document.getElementById('invert-bw').onchange = applyFilters;
     document.getElementById('duration').oninput = (e) => document.getElementById('duration-val').textContent = e.target.value;
     document.getElementById('nbins').oninput = (e) => document.getElementById('bins-val').textContent = e.target.value;
 
@@ -321,24 +341,13 @@
     function generateAudio() {
       initAudio();
       
-      const cv = activeTab === 'draw' ? paintCanvas : importCanvas;
-      const ctx = activeTab === 'draw' ? pCtx : iCtx;
-      
-      const imgData = ctx.getImageData(0, 0, cv.width, cv.height);
+      const imgData = pCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
       const data = imgData.data;
+      const w = paintCanvas.width, h = paintCanvas.height;
 
-      const contrast = parseFloat(document.getElementById('contrast').value);
-      const brightness = parseFloat(document.getElementById('brightness').value);
-      const invertBW = document.getElementById('invert-bw').checked;
-
-      const processed = new Float32Array(cv.width * cv.height);
+      const processed = new Float32Array(w * h);
       for (let i = 0; i < data.length; i += 4) {
-        let gray = (data[i] + data[i+1] + data[i+2]) / 3;
-        gray = ((gray - 128) * contrast + 128) * brightness;
-        gray = Math.max(0, Math.min(255, gray));
-        let val = gray / 255.0;
-        if (invertBW) val = 1.0 - val;
-        processed[i / 4] = val;
+        processed[i / 4] = data[i] / 255.0;
       }
 
       const duration = parseFloat(document.getElementById('duration').value);
@@ -349,7 +358,6 @@
 
       const buffer = audioCtx.createBuffer(1, totalSamples, sampleRate);
       const channel = buffer.getChannelData(0);
-      const w = cv.width, h = cv.height;
 
       if (engine === 'spectral') {
         const fmin = parseFloat(document.getElementById('fmin').value) || 80;
@@ -364,10 +372,8 @@
           let phase = 0;
           for (let i = 0; i < totalSamples; i++) {
             let x = Math.floor((i / totalSamples) * (w - 1));
-            // Calcul de l'encre (0 = blanc, 1 = noir dessiné)
-            let ink = 1.0 - processed[y * w + x];
-            
-            // Masquer les valeurs trop faibles pour éviter le bruit de fond continu
+            let val = processed[y * w + x];
+            let ink = 1.0 - val;
             let amp = ink > 0.15 ? ink : 0.0;
             
             phase += (2 * Math.PI * freq) / sampleRate;
