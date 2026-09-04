@@ -3,58 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dessin Sonore — V1.7 Web</title>
+  <title>Dessin Sonore — V1.8 Web</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a1a; color: #e0e0e0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a1a; color: #e0e0e0; display: flex; flex-direction: column; min-height: 100vh; }
     
-    header { background: #242424; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-    header h1 { font-size: 1.1rem; color: #fff; }
-    header span { font-size: 0.8rem; color: #888; }
+    header { background: #242424; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; z-index: 10; }
+    header h1 { font-size: 1rem; color: #fff; }
+    header span { font-size: 0.8rem; color: #4caf50; font-weight: bold; }
 
-    .main-layout { display: flex; flex: 1; flex-direction: column; overflow: hidden; }
-    @media (min-width: 900px) { .main-layout { flex-direction: row; } }
+    .main-layout { display: flex; flex-direction: column; flex: 1; }
+    @media (min-width: 900px) { .main-layout { flex-direction: row; height: calc(100vh - 50px); } }
 
-    .workspace { flex: 1; display: flex; flex-direction: column; background: #121212; padding: 10px; gap: 10px; overflow: hidden; }
+    .workspace { flex: 1; display: flex; flex-direction: column; background: #121212; padding: 10px; gap: 10px; }
     
     .tabs { display: flex; background: #252525; border-radius: 6px; padding: 3px; gap: 3px; }
-    .tab-btn { flex: 1; padding: 8px; background: transparent; border: none; color: #aaa; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    .tab-btn { flex: 1; padding: 10px; background: transparent; border: none; color: #aaa; font-weight: bold; border-radius: 4px; font-size: 0.9rem; }
     .tab-btn.active { background: #3a3a3a; color: #fff; }
 
-    .canvas-container { flex: 1; background: #000; border-radius: 6px; position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
+    .canvas-container { flex: 1; background: #000; border-radius: 6px; border: 1px solid #333; display: flex; flex-direction: column; min-height: 300px; }
     .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #202020; border-bottom: 1px solid #333; gap: 10px; }
     
-    /* Touch-action restreint STRICTEMENT au canvas */
-    canvas.paint-area { flex: 1; width: 100%; height: 100%; background: #ffffff; cursor: crosshair; touch-action: none; }
+    /* Strictement restreint au dessin */
+    canvas.paint-area { width: 100%; flex: 1; background: #ffffff; touch-action: none; display: block; }
 
-    .sidebar { width: 100%; background: #222; padding: 15px; border-left: 1px solid #333; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    @media (min-width: 900px) { .sidebar { width: 360px; } }
+    .sidebar { background: #222; padding: 15px; border-top: 1px solid #333; display: flex; flex-direction: column; gap: 15px; }
+    @media (min-width: 900px) { .sidebar { width: 360px; border-top: none; border-left: 1px solid #333; overflow-y: auto; } }
 
-    .section-title { font-size: 0.8rem; font-weight: bold; color: #1976d2; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+    .section-title { font-size: 0.8rem; font-weight: bold; color: #2196f3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
     
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-2 { display: grid; grid-weight: 1fr 1fr; grid-template-columns: 1fr 1fr; gap: 8px; }
     .control { display: flex; flex-direction: column; gap: 4px; }
-    label { font-size: 0.8rem; color: #bbb; display: flex; justify-content: space-between; }
-    input[type="range"] { accent-color: #1976d2; width: 100%; }
+    label { font-size: 0.85rem; color: #bbb; display: flex; justify-content: space-between; }
+    input[type="range"] { accent-color: #2196f3; width: 100%; height: 25px; }
     
-    /* Formulaires explicitement interactifs */
+    /* Correction spécifique pour menus et champs de saisie mobile */
     select, input[type="number"] { 
       background: #333; 
       border: 1px solid #555; 
       color: #fff; 
-      padding: 10px; 
+      padding: 12px; 
       border-radius: 6px; 
       font-size: 1rem; 
       width: 100%;
+      display: block;
       -webkit-appearance: menulist;
       appearance: menulist;
+      z-index: 5;
     }
 
-    .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; color: #ccc; }
-    .checkbox-label input { width: 18px; height: 18px; accent-color: #1976d2; }
+    .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #ccc; padding: 4px 0; }
+    .checkbox-label input { width: 20px; height: 20px; accent-color: #2196f3; }
 
-    .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    button.action-btn { padding: 12px 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; background: #333; color: #fff; font-size: 0.85rem; }
+    .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    button.action-btn { padding: 14px 8px; border: none; border-radius: 6px; font-weight: bold; background: #333; color: #fff; font-size: 0.85rem; text-align: center; }
     button.primary { background: #2e7d32; }
     button.danger { background: #c62828; }
     button.secondary { background: #1565c0; }
@@ -66,26 +68,26 @@
 <body>
 
   <header>
-    <h1>DESSIN SONORE — V1.7</h1>
-    <span id="audio-indicator">🔇 Audio: En attente</span>
+    <h1>DESSIN SONORE — V1.8</h1>
+    <span id="audio-indicator">AUDIO: PRÊT</span>
   </header>
 
   <div class="main-layout">
     
     <div class="workspace">
       <div class="tabs">
-        <button class="tab-btn active" id="tab-draw-btn">🎨 Dessiner</button>
-        <button class="tab-btn" id="tab-import-btn">🖼 Importer</button>
+        <button type="button" class="tab-btn active" id="tab-draw-btn">🎨 Dessiner</button>
+        <button type="button" class="tab-btn" id="tab-import-btn">🖼 Importer</button>
       </div>
 
       <div id="draw-view" class="canvas-container">
         <div class="toolbar">
-          <div style="display:flex; align-items:center; gap: 8px; flex: 1; max-width: 250px;">
-            <label style="white-space:nowrap; margin:0;">Épaisseur :</label>
+          <div style="display:flex; align-items:center; gap: 8px; flex: 1;">
+            <label style="white-space:nowrap; margin:0;">Épaisseur:</label>
             <input type="range" id="brush-size" min="1" max="25" value="6">
             <span id="brush-val" style="font-size:0.8rem;">6</span>
           </div>
-          <button class="action-btn" id="btn-clear">⌫ Effacer</button>
+          <button type="button" class="action-btn" id="btn-clear">⌫ Effacer</button>
         </div>
         <canvas id="paintCanvas" class="paint-area"></canvas>
       </div>
@@ -93,7 +95,7 @@
       <div id="import-view" class="canvas-container" style="display:none;">
         <div class="toolbar">
           <input type="file" id="file-input" accept="image/*" style="display:none;">
-          <button class="action-btn secondary" id="btn-browse">📂 Importer une image</button>
+          <button type="button" class="action-btn secondary" id="btn-browse">📂 Importer une image</button>
         </div>
         <canvas id="importCanvas" class="paint-area"></canvas>
       </div>
@@ -133,7 +135,7 @@
         </div>
 
         <div class="control" style="margin-bottom: 10px;">
-          <label>Durée (s) : <span id="duration-val">4</span>s</label>
+          <label>Durée : <span id="duration-val">4</span>s</label>
           <input type="range" id="duration" min="0.5" max="12" value="4" step="0.5">
         </div>
 
@@ -164,14 +166,14 @@
 
       <div>
         <div class="section-title">Actions</div>
-        <div class="btn-group" style="margin-bottom: 8px;">
-          <button class="action-btn primary" id="btn-play">▶ Écouter</button>
-          <button class="action-btn danger" id="btn-stop">■ Stop</button>
-          <button class="action-btn secondary" id="btn-spectrogram">📊 Voir</button>
+        <div class="btn-group">
+          <button type="button" class="action-btn primary" id="btn-play">▶ Jouer</button>
+          <button type="button" class="action-btn danger" id="btn-stop">■ Stop</button>
+          <button type="button" class="action-btn secondary" id="btn-spectrogram">📊 Voir</button>
         </div>
       </div>
 
-      <div id="status-bar" style="font-size:0.75rem; color:#888; margin-top:auto;">Prêt.</div>
+      <div id="status-bar" style="font-size:0.8rem; color:#aaa; margin-top:10px;">Prêt.</div>
     </div>
 
   </div>
@@ -179,40 +181,42 @@
   <div class="modal" id="modal-spectro">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>Spectrogramme du son généré</h3>
-        <button class="action-btn danger" id="btn-close-modal">✕ Fermer</button>
+        <h3>Spectrogramme</h3>
+        <button type="button" class="action-btn danger" id="btn-close-modal">✕</button>
       </div>
-      <canvas id="spectroCanvas" style="height: 250px; background:#000;"></canvas>
+      <canvas id="spectroCanvas" style="height: 200px; background:#000; width:100%;"></canvas>
     </div>
   </div>
 
   <script>
-    // --- GESTION AUDIO UNIVERSELLE (MOBILE) ---
+    // ÉCOUTEURS D'ÉVÉNEMENTS POUR MOBILE
+    function bindTouchClick(id, handler) {
+      const el = typeof id === 'string' ? document.getElementById(id) : id;
+      if (!el) return;
+      el.addEventListener('click', handler);
+      el.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handler(e);
+      });
+    }
+
+    // AUDIO CONTEXT
     let audioCtx = null;
     let currentSource = null;
     let lastAudioBuffer = null;
 
-    function unlockAudio() {
+    function initAudio() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
       if (audioCtx.state === 'suspended') {
-        audioCtx.resume().then(() => {
-          document.getElementById('audio-indicator').textContent = "🔊 Audio: Prêt";
-        });
-      } else {
-        document.getElementById('audio-indicator').textContent = "🔊 Audio: Prêt";
+        audioCtx.resume();
       }
     }
 
-    // Débloque l'audio sur n'importe quelle interaction
-    window.addEventListener('touchstart', unlockAudio, { once: true });
-    window.addEventListener('click', unlockAudio, { once: true });
-
-    // --- CANVAS & DESSIN ---
+    // CANVAS & DESSIN
     const paintCanvas = document.getElementById('paintCanvas');
     const pCtx = paintCanvas.getContext('2d', { willReadFrequently: true });
-    
     const importCanvas = document.getElementById('importCanvas');
     const iCtx = importCanvas.getContext('2d', { willReadFrequently: true });
 
@@ -220,55 +224,59 @@
     let isDrawing = false;
     let lastX = 0, lastY = 0;
 
-    function initCanvas() {
+    function resizeCanvas() {
       const pRect = paintCanvas.parentElement.getBoundingClientRect();
       paintCanvas.width = pRect.width;
-      paintCanvas.height = pRect.height - 45;
+      paintCanvas.height = Math.max(250, pRect.height - 45);
       pCtx.fillStyle = "#ffffff";
       pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
 
       const iRect = importCanvas.parentElement.getBoundingClientRect();
       importCanvas.width = iRect.width;
-      importCanvas.height = iRect.height - 45;
+      importCanvas.height = Math.max(250, iRect.height - 45);
       iCtx.fillStyle = "#111111";
       iCtx.fillRect(0, 0, importCanvas.width, importCanvas.height);
     }
-    window.addEventListener('resize', initCanvas);
-    setTimeout(initCanvas, 100);
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 150);
 
-    // Onglets
-    document.getElementById('tab-draw-btn').onclick = () => {
+    // CHANGEMENT D'ONGLETS
+    bindTouchClick('tab-draw-btn', () => {
       activeTab = 'draw';
       document.getElementById('draw-view').style.display = 'flex';
       document.getElementById('import-view').style.display = 'none';
       document.getElementById('tab-draw-btn').classList.add('active');
       document.getElementById('tab-import-btn').classList.remove('active');
-    };
+    });
 
-    document.getElementById('tab-import-btn').onclick = () => {
+    bindTouchClick('tab-import-btn', () => {
       activeTab = 'import';
       document.getElementById('draw-view').style.display = 'none';
       document.getElementById('import-view').style.display = 'flex';
       document.getElementById('tab-import-btn').classList.add('active');
       document.getElementById('tab-draw-btn').classList.remove('active');
-    };
+    });
 
+    // ÉPASSEUR DU PINCEAU
     const brushSlider = document.getElementById('brush-size');
     brushSlider.oninput = (e) => document.getElementById('brush-val').textContent = e.target.value;
 
-    function getPos(e, canvas) {
-      const rect = canvas.getBoundingClientRect();
+    function getPos(e) {
+      const rect = paintCanvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
-    paintCanvas.addEventListener('mousedown', (e) => { isDrawing = true; const p = getPos(e, paintCanvas); lastX = p.x; lastY = p.y; });
-    paintCanvas.addEventListener('touchstart', (e) => { isDrawing = true; const p = getPos(e, paintCanvas); lastX = p.x; lastY = p.y; }, { passive: true });
+    function startDraw(e) {
+      isDrawing = true;
+      const p = getPos(e);
+      lastX = p.x; lastY = p.y;
+    }
 
     function draw(e) {
       if (!isDrawing) return;
-      const p = getPos(e, paintCanvas);
+      const p = getPos(e);
       pCtx.beginPath();
       pCtx.moveTo(lastX, lastY);
       pCtx.lineTo(p.x, p.y);
@@ -279,52 +287,57 @@
       lastX = p.x; lastY = p.y;
     }
 
+    function stopDraw() { isDrawing = false; }
+
+    paintCanvas.addEventListener('mousedown', startDraw);
     paintCanvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDraw);
+
+    paintCanvas.addEventListener('touchstart', (e) => { startDraw(e); }, { passive: true });
     paintCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
+    paintCanvas.addEventListener('touchend', stopDraw);
 
-    window.addEventListener('mouseup', () => isDrawing = false);
-    window.addEventListener('touchend', () => isDrawing = false);
-
-    document.getElementById('btn-clear').onclick = () => {
+    bindTouchClick('btn-clear', () => {
       pCtx.fillStyle = "#ffffff";
       pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
-    };
+    });
 
-    // Importer
+    // IMPORTER UNE IMAGE
     const fileInput = document.getElementById('file-input');
-    document.getElementById('btn-browse').onclick = () => fileInput.click();
+    bindTouchClick('btn-browse', () => fileInput.click());
     fileInput.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = (evt) => {
         const img = new Image();
         img.onload = () => iCtx.drawImage(img, 0, 0, importCanvas.width, importCanvas.height);
-        img.src = event.target.result;
+        img.src = evt.target.result;
       };
       reader.readAsDataURL(file);
     };
 
-    // Formulaires & Sliders
+    // CONTRÔLES ET MOTEURS
     document.getElementById('contrast').oninput = (e) => document.getElementById('contrast-val').textContent = parseFloat(e.target.value).toFixed(2);
     document.getElementById('brightness').oninput = (e) => document.getElementById('brightness-val').textContent = parseFloat(e.target.value).toFixed(2);
     document.getElementById('duration').oninput = (e) => document.getElementById('duration-val').textContent = e.target.value;
     document.getElementById('nbins').oninput = (e) => document.getElementById('bins-val').textContent = e.target.value;
 
     const engineSelect = document.getElementById('engine-select');
-    engineSelect.addEventListener('change', (e) => {
-      const val = e.target.value;
-      document.getElementById('ans-controls').style.display = val === 'spectral' ? 'block' : 'none';
-      document.getElementById('mclaren-controls').style.display = val === 'mclaren' ? 'block' : 'none';
-    });
+    engineSelect.onchange = (e) => {
+      document.getElementById('ans-controls').style.display = e.target.value === 'spectral' ? 'block' : 'none';
+      document.getElementById('mclaren-controls').style.display = e.target.value === 'mclaren' ? 'block' : 'none';
+    };
 
-    // Moteur Audio
-    function getActiveImageData() {
+    // GENERATION SONORE
+    function generateAudio() {
+      initAudio();
+      
       const cv = activeTab === 'draw' ? paintCanvas : importCanvas;
       const ctx = activeTab === 'draw' ? pCtx : iCtx;
       const imgData = ctx.getImageData(0, 0, cv.width, cv.height);
-      
       const data = imgData.data;
+
       const contrast = parseFloat(document.getElementById('contrast').value);
       const brightness = parseFloat(document.getElementById('brightness').value);
       const invertBW = document.getElementById('invert-bw').checked;
@@ -338,13 +351,7 @@
         if (invertBW) val = 1.0 - val;
         processed[i / 4] = val;
       }
-      return { data: processed, w: cv.width, h: cv.height };
-    }
 
-    function generateAudio() {
-      unlockAudio();
-      
-      const { data, w, h } = getActiveImageData();
       const duration = parseFloat(document.getElementById('duration').value);
       const sampleRate = audioCtx.sampleRate;
       const totalSamples = Math.floor(sampleRate * duration);
@@ -353,6 +360,7 @@
 
       const buffer = audioCtx.createBuffer(1, totalSamples, sampleRate);
       const channel = buffer.getChannelData(0);
+      const w = cv.width, h = cv.height;
 
       if (engine === 'spectral') {
         const fmin = parseFloat(document.getElementById('fmin').value) || 80;
@@ -366,21 +374,20 @@
 
           for (let i = 0; i < totalSamples; i++) {
             let x = Math.floor((i / totalSamples) * (w - 1));
-            let amp = 1.0 - data[y * w + x];
+            let amp = 1.0 - processed[y * w + x];
             if (amp > 0.05) {
               channel[i] += Math.sin(2 * Math.PI * freq * (i / sampleRate)) * amp * 0.03;
             }
           }
         }
-      } 
-      else if (engine === 'mclaren') {
+      } else if (engine === 'mclaren') {
         const baseFreq = parseFloat(document.getElementById('mclaren-freq').value) || 220;
         let phase = 0;
         for (let i = 0; i < totalSamples; i++) {
           let x = Math.floor((i / totalSamples) * (w - 1));
           let columnCenter = 0, totalWeight = 0;
           for (let y = 0; y < h; y++) {
-            let ink = 1.0 - data[y * w + x];
+            let ink = 1.0 - processed[y * w + x];
             columnCenter += y * ink;
             totalWeight += ink;
           }
@@ -392,12 +399,11 @@
           phase += (2 * Math.PI * instFreq) / sampleRate;
           channel[i] = Math.sin(phase) * (totalWeight > 0.5 ? 0.7 : 0);
         }
-      } 
-      else {
+      } else {
         for (let i = 0; i < totalSamples; i++) {
           let x = Math.floor((i / totalSamples) * (w - 1));
           let sum = 0;
-          for (let y = 0; y < h; y++) sum += data[y * w + x];
+          for (let y = 0; y < h; y++) sum += processed[y * w + x];
           let density = sum / h;
           channel[i] = (Math.random() * 2 - 1) * (1.0 - density);
         }
@@ -413,37 +419,38 @@
       return buffer;
     }
 
-    document.getElementById('btn-play').onclick = () => {
-      unlockAudio();
+    // ACTIONS BOUTONS SON
+    bindTouchClick('btn-play', () => {
       if (currentSource) currentSource.stop();
       const buffer = generateAudio();
       currentSource = audioCtx.createBufferSource();
       currentSource.buffer = buffer;
       currentSource.connect(audioCtx.destination);
       currentSource.start();
-      document.getElementById('status-bar').textContent = "▶ Lecture en cours…";
-    };
+      document.getElementById('status-bar').textContent = "▶ Lecture en cours...";
+    });
 
-    document.getElementById('btn-stop').onclick = () => {
+    bindTouchClick('btn-stop', () => {
       if (currentSource) currentSource.stop();
       document.getElementById('status-bar').textContent = "■ Arrêté.";
-    };
+    });
 
+    // SPECTROGRAMME
     const modal = document.getElementById('modal-spectro');
-    document.getElementById('btn-spectrogram').onclick = () => {
+    bindTouchClick('btn-spectrogram', () => {
       if (!lastAudioBuffer) generateAudio();
       modal.style.display = "flex";
       
       const canvas = document.getElementById('spectroCanvas');
       const ctx = canvas.getContext('2d');
-      canvas.width = canvas.parentElement.clientWidth - 30;
-      canvas.height = 250;
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = 200;
 
       const data = lastAudioBuffer.getChannelData(0);
       ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "#1976d2";
+      ctx.fillStyle = "#2196f3";
       const step = Math.ceil(data.length / canvas.width);
       const amp = canvas.height / 2;
 
@@ -456,8 +463,9 @@
         }
         ctx.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
       }
-    };
-    document.getElementById('btn-close-modal').onclick = () => modal.style.display = "none";
+    });
+
+    bindTouchClick('btn-close-modal', () => modal.style.display = "none");
   </script>
 </body>
 </html>
