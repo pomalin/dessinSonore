@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dessin Sonore — V1.8 Web</title>
+  <title>Dessin Sonore — V1.9 Web</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a1a; color: #e0e0e0; display: flex; flex-direction: column; min-height: 100vh; }
@@ -21,23 +21,21 @@
     .tab-btn { flex: 1; padding: 10px; background: transparent; border: none; color: #aaa; font-weight: bold; border-radius: 4px; font-size: 0.9rem; }
     .tab-btn.active { background: #3a3a3a; color: #fff; }
 
-    .canvas-container { flex: 1; background: #000; border-radius: 6px; border: 1px solid #333; display: flex; flex-direction: column; min-height: 300px; }
+    .canvas-container { flex: 1; background: #000; border-radius: 6px; border: 1px solid #333; display: flex; flex-direction: column; min-height: 300px; position: relative; }
     .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #202020; border-bottom: 1px solid #333; gap: 10px; }
     
-    /* Strictement restreint au dessin */
-    canvas.paint-area { width: 100%; flex: 1; background: #ffffff; touch-action: none; display: block; }
+    canvas.paint-area { width: 100%; height: 100%; background: #ffffff; touch-action: none; display: block; flex: 1; }
 
     .sidebar { background: #222; padding: 15px; border-top: 1px solid #333; display: flex; flex-direction: column; gap: 15px; }
     @media (min-width: 900px) { .sidebar { width: 360px; border-top: none; border-left: 1px solid #333; overflow-y: auto; } }
 
     .section-title { font-size: 0.8rem; font-weight: bold; color: #2196f3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
     
-    .grid-2 { display: grid; grid-weight: 1fr 1fr; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .control { display: flex; flex-direction: column; gap: 4px; }
     label { font-size: 0.85rem; color: #bbb; display: flex; justify-content: space-between; }
     input[type="range"] { accent-color: #2196f3; width: 100%; height: 25px; }
     
-    /* Correction spécifique pour menus et champs de saisie mobile */
     select, input[type="number"] { 
       background: #333; 
       border: 1px solid #555; 
@@ -68,7 +66,7 @@
 <body>
 
   <header>
-    <h1>DESSIN SONORE — V1.8</h1>
+    <h1>DESSIN SONORE — V1.9</h1>
     <span id="audio-indicator">AUDIO: PRÊT</span>
   </header>
 
@@ -189,7 +187,6 @@
   </div>
 
   <script>
-    // ÉCOUTEURS D'ÉVÉNEMENTS POUR MOBILE
     function bindTouchClick(id, handler) {
       const el = typeof id === 'string' ? document.getElementById(id) : id;
       if (!el) return;
@@ -200,7 +197,6 @@
       });
     }
 
-    // AUDIO CONTEXT
     let audioCtx = null;
     let currentSource = null;
     let lastAudioBuffer = null;
@@ -214,7 +210,6 @@
       }
     }
 
-    // CANVAS & DESSIN
     const paintCanvas = document.getElementById('paintCanvas');
     const pCtx = paintCanvas.getContext('2d', { willReadFrequently: true });
     const importCanvas = document.getElementById('importCanvas');
@@ -223,24 +218,34 @@
     let activeTab = 'draw';
     let isDrawing = false;
     let lastX = 0, lastY = 0;
+    let canvasInitialized = false;
 
-    function resizeCanvas() {
+    function initCanvasDimensions() {
+      if (canvasInitialized) return;
+      
       const pRect = paintCanvas.parentElement.getBoundingClientRect();
-      paintCanvas.width = pRect.width;
-      paintCanvas.height = Math.max(250, pRect.height - 45);
+      const w = Math.floor(pRect.width);
+      const h = Math.max(250, Math.floor(pRect.height - 45));
+
+      paintCanvas.width = w;
+      paintCanvas.height = h;
       pCtx.fillStyle = "#ffffff";
-      pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      pCtx.fillRect(0, 0, w, h);
 
       const iRect = importCanvas.parentElement.getBoundingClientRect();
-      importCanvas.width = iRect.width;
-      importCanvas.height = Math.max(250, iRect.height - 45);
-      iCtx.fillStyle = "#111111";
-      iCtx.fillRect(0, 0, importCanvas.width, importCanvas.height);
-    }
-    window.addEventListener('resize', resizeCanvas);
-    setTimeout(resizeCanvas, 150);
+      const iw = Math.floor(iRect.width);
+      const ih = Math.max(250, Math.floor(iRect.height - 45));
 
-    // CHANGEMENT D'ONGLETS
+      importCanvas.width = iw;
+      importCanvas.height = ih;
+      iCtx.fillStyle = "#111111";
+      iCtx.fillRect(0, 0, iw, ih);
+
+      canvasInitialized = true;
+    }
+
+    setTimeout(initCanvasDimensions, 100);
+
     bindTouchClick('tab-draw-btn', () => {
       activeTab = 'draw';
       document.getElementById('draw-view').style.display = 'flex';
@@ -257,7 +262,6 @@
       document.getElementById('tab-draw-btn').classList.remove('active');
     });
 
-    // ÉPASSEUR DU PINCEAU
     const brushSlider = document.getElementById('brush-size');
     brushSlider.oninput = (e) => document.getElementById('brush-val').textContent = e.target.value;
 
@@ -265,7 +269,14 @@
       const rect = paintCanvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      return { x: clientX - rect.left, y: clientY - rect.top };
+      
+      const scaleX = paintCanvas.width / rect.width;
+      const scaleY = paintCanvas.height / rect.height;
+
+      return { 
+        x: (clientX - rect.left) * scaleX, 
+        y: (clientY - rect.top) * scaleY 
+      };
     }
 
     function startDraw(e) {
@@ -302,7 +313,6 @@
       pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
     });
 
-    // IMPORTER UNE IMAGE
     const fileInput = document.getElementById('file-input');
     bindTouchClick('btn-browse', () => fileInput.click());
     fileInput.onchange = (e) => {
@@ -317,7 +327,6 @@
       reader.readAsDataURL(file);
     };
 
-    // CONTRÔLES ET MOTEURS
     document.getElementById('contrast').oninput = (e) => document.getElementById('contrast-val').textContent = parseFloat(e.target.value).toFixed(2);
     document.getElementById('brightness').oninput = (e) => document.getElementById('brightness-val').textContent = parseFloat(e.target.value).toFixed(2);
     document.getElementById('duration').oninput = (e) => document.getElementById('duration-val').textContent = e.target.value;
@@ -329,12 +338,13 @@
       document.getElementById('mclaren-controls').style.display = e.target.value === 'mclaren' ? 'block' : 'none';
     };
 
-    // GENERATION SONORE
     function generateAudio() {
       initAudio();
       
       const cv = activeTab === 'draw' ? paintCanvas : importCanvas;
       const ctx = activeTab === 'draw' ? pCtx : iCtx;
+      
+      // Lecture directe des données sans toucher aux dimensions du canvas
       const imgData = ctx.getImageData(0, 0, cv.width, cv.height);
       const data = imgData.data;
 
@@ -419,7 +429,6 @@
       return buffer;
     }
 
-    // ACTIONS BOUTONS SON
     bindTouchClick('btn-play', () => {
       if (currentSource) currentSource.stop();
       const buffer = generateAudio();
@@ -435,7 +444,6 @@
       document.getElementById('status-bar').textContent = "■ Arrêté.";
     });
 
-    // SPECTROGRAMME
     const modal = document.getElementById('modal-spectro');
     bindTouchClick('btn-spectrogram', () => {
       if (!lastAudioBuffer) generateAudio();
