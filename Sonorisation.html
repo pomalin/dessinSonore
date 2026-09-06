@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Dessin Sonore — V3.8</title>
+<title>Dessin Sonore — V3.9</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -28,7 +28,8 @@ button, select, input[type="number"] {
     background: #222; color: #eee; border: 1px solid #555; border-radius: 5px; padding: 7px 10px; cursor: pointer;
 }
 button:hover { background: #303030; }
-input[type="range"] { width: 110px; }
+button.active { background: #0055cc; border-color: #0077ff; }
+input[type="range"] { width: 90px; }
 
 main { max-width: 1100px; margin: auto; padding: 18px; }
 .canvas-wrap { width: 100%; display: flex; justify-content: center; }
@@ -66,14 +67,13 @@ main { max-width: 1100px; margin: auto; padding: 18px; }
     align-items: center;
     gap: 8px;
 }
-.read-controls button { min-width: 105px; }
 
 .info { margin-top: 12px; color: #999; font-size: 13px; line-height: 1.5; }
 .advanced { display: none; padding: 12px 20px; border-bottom: 1px solid #333; background: #171717; }
 .advanced.visible { display: flex; flex-wrap: wrap; gap: 15px; }
 .status { margin-top: 8px; font-size: 12px; color: #777; }
 
-/* SPECTROGRAMME MODAL */
+/* MODAL SPECTROGRAMME */
 .spectrogram-modal {
     display: none;
     position: fixed;
@@ -95,22 +95,13 @@ main { max-width: 1100px; margin: auto; padding: 18px; }
     overflow: auto;
 }
 .spectrogram-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 12px; }
-.spectrogram-title { font-size: 17px; color: #eee; }
-.spectrogram-description { color: #999; font-size: 12px; margin-bottom: 12px; }
 
 #spectrogramCanvas, #waveformCanvas {
     width: 100%;
     height: auto;
     display: block;
-    background: #fff;
+    background: #000;
     border: 1px solid #444;
-}
-.waveform-title { margin-top: 18px; margin-bottom: 8px; font-size: 13px; color: #bbb; }
-
-@media (max-width: 700px) {
-    header { padding: 12px 14px 8px; }
-    main { padding: 10px; }
-    .controls { padding: 10px 14px; }
 }
 </style>
 </head>
@@ -118,17 +109,30 @@ main { max-width: 1100px; margin: auto; padding: 18px; }
 
 <header>
     <h1>Dessin Sonore</h1>
-    <div class="version">V3.8 — Optimisée & Corrigée</div>
+    <div class="version">V3.9 — Moteurs distincts, Gomme & Épaisseur réglable</div>
 </header>
 
 <div class="controls">
+    <!-- OUTILS DE DESSIN -->
+    <div class="group">
+        <button id="toolDraw" class="active">✏️ Crayon</button>
+        <button id="toolErase">🧽 Gomme</button>
+    </div>
+
+    <div class="group">
+        <label>Taille</label>
+        <input id="brushSize" type="range" min="1" max="50" value="6">
+        <span id="brushSizeVal" style="font-size:12px; color:#aaa; min-width:24px;">6px</span>
+    </div>
+
+    <!-- MOTEURS ET RÉGLAGES AUDIO -->
     <div class="group">
         <label>Moteur</label>
         <select id="mode">
-            <option value="spectral">Pixels</option>
-            <option value="contours">Contours</option>
-            <option value="mclaren">McLaren — trajectoire</option>
-            <option value="density">Masse — champ musical</option>
+            <option value="spectral">Pixels (Synthèse additive)</option>
+            <option value="contours">Contours (Ligne mélodique)</option>
+            <option value="mclaren">McLaren (Trajectoire & Pente)</option>
+            <option value="density">Masse (Synthèse granulaire)</option>
         </select>
     </div>
 
@@ -154,34 +158,22 @@ main { max-width: 1100px; margin: auto; padding: 18px; }
         <input id="volume" type="range" min="0" max="1" value="0.65" step="0.01">
     </div>
 
-    <div class="group">
-        <label>Forme</label>
-        <select id="waveform">
-            <option value="sine">Sinus</option>
-            <option value="triangle">Triangle</option>
-            <option value="soft">Doux</option>
-            <option value="harmonic">Harmonique</option>
-        </select>
-    </div>
-
     <button id="play">▶ Lecture</button>
     <button id="stop">■ Stop</button>
-    <button id="clear">Effacer</button>
+    <button id="clear">Tout effacer</button>
     <button id="spectrogram">Spectrogramme</button>
 
     <div class="group">
         <input type="file" id="imageInput" accept="image/*">
     </div>
 
-    <button id="advancedBtn">Réglages avancés</button>
+    <button id="advancedBtn">Avancé</button>
 </div>
 
 <div id="advanced" class="advanced">
     <div class="group"><label>F min</label><input id="fmin" type="number" value="110" min="20" max="2000"></div>
     <div class="group"><label>F max</label><input id="fmax" type="number" value="880" min="50" max="5000"></div>
-    <div class="group"><label>Bins</label><input id="bins" type="number" value="128" min="32" max="512"></div>
-    <div class="group"><label>McLaren sensibilité</label><input id="mclarenSensitivity" type="range" min="0" max="2" value="0.8" step="0.01"></div>
-    <div class="group"><label>Masse richesse</label><input id="massRichness" type="range" min="0" max="1" value="0.55" step="0.01"></div>
+    <div class="group"><label>Bins (Résolution)</label><input id="bins" type="number" value="128" min="32" max="512"></div>
 </div>
 
 <main>
@@ -197,10 +189,6 @@ main { max-width: 1100px; margin: auto; padding: 18px; }
         <button id="stopUnder">■ Stop</button>
     </div>
 
-    <div class="info">
-        <strong>Principe :</strong> Chaque moteur lit la trace visuelle selon une approche unique (spatiale, vectorielle ou granulaire).
-    </div>
-
     <div id="status" class="status">Prêt.</div>
 </main>
 
@@ -208,21 +196,14 @@ main { max-width: 1100px; margin: auto; padding: 18px; }
 <div id="spectrogramModal" class="spectrogram-modal">
     <div class="spectrogram-box">
         <div class="spectrogram-header">
-            <div class="spectrogram-title">Analyse du signal audio</div>
+            <h3>Analyse du signal audio</h3>
             <button id="closeSpectrogram">Fermer</button>
         </div>
-        <div class="spectrogram-description">Représentation temps-fréquence générée à partir du rendu audio réel.</div>
-        <canvas id="spectrogramCanvas" width="900" height="420"></canvas>
-        <div class="waveform-title">Forme d'onde</div>
-        <canvas id="waveformCanvas" width="900" height="180"></canvas>
+        <canvas id="waveformCanvas" width="900" height="150"></canvas>
     </div>
 </div>
 
 <script>
-/* =========================================================
-   DESSIN SONORE — V3.8 (Logique consolidée)
-   ========================================================= */
-
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const readingCanvas = document.getElementById("readingCanvas");
@@ -232,12 +213,14 @@ const modeSelect = document.getElementById("mode");
 const scaleSelect = document.getElementById("scale");
 const durationInput = document.getElementById("duration");
 const volumeInput = document.getElementById("volume");
-const waveformSelect = document.getElementById("waveform");
 const fminInput = document.getElementById("fmin");
 const fmaxInput = document.getElementById("fmax");
 const binsInput = document.getElementById("bins");
-const mclarenSensitivity = document.getElementById("mclarenSensitivity");
-const massRichness = document.getElementById("massRichness");
+
+const toolDraw = document.getElementById("toolDraw");
+const toolErase = document.getElementById("toolErase");
+const brushSize = document.getElementById("brushSize");
+const brushSizeVal = document.getElementById("brushSizeVal");
 
 const status = document.getElementById("status");
 const advancedBtn = document.getElementById("advancedBtn");
@@ -253,8 +236,6 @@ const stopUnderBtn = document.getElementById("stopUnder");
 
 const spectrogramModal = document.getElementById("spectrogramModal");
 const closeSpectrogramBtn = document.getElementById("closeSpectrogram");
-const spectrogramCanvas = document.getElementById("spectrogramCanvas");
-const spectrogramCtx = spectrogramCanvas.getContext("2d");
 const waveformCanvas = document.getElementById("waveformCanvas");
 const waveformCtx = waveformCanvas.getContext("2d");
 
@@ -265,6 +246,7 @@ let playbackStartedAt = 0;
 let playbackDuration = 0;
 let animationFrame = null;
 
+let isErasing = false;
 let drawing = false;
 let activePointerId = null;
 let lastX = 0, lastY = 0;
@@ -276,6 +258,23 @@ function initCanvas() {
 }
 initCanvas();
 
+/* --- BOUTONS OUTILS --- */
+toolDraw.addEventListener("click", () => {
+    isErasing = false;
+    toolDraw.classList.add("active");
+    toolErase.classList.remove("active");
+});
+
+toolErase.addEventListener("click", () => {
+    isErasing = true;
+    toolErase.classList.add("active");
+    toolDraw.classList.remove("active");
+});
+
+brushSize.addEventListener("input", (e) => {
+    brushSizeVal.textContent = e.target.value + "px";
+});
+
 /* --- LIGNE DE LECTURE --- */
 function clearReadingLine() {
     readingCtx.clearRect(0, 0, readingCanvas.width, readingCanvas.height);
@@ -286,9 +285,8 @@ function drawReadingLine(progress) {
     if (progress < 0 || progress > 1) return;
     const x = progress * readingCanvas.width;
     readingCtx.save();
-    readingCtx.strokeStyle = "#000";
+    readingCtx.strokeStyle = "#ff0044";
     readingCtx.lineWidth = 2;
-    readingCtx.globalAlpha = 0.75;
     readingCtx.beginPath();
     readingCtx.moveTo(x, 0);
     readingCtx.lineTo(x, readingCanvas.height);
@@ -321,14 +319,11 @@ function startReadingAnimation() {
 }
 
 function stopReadingAnimation() {
-    if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-        animationFrame = null;
-    }
+    if (animationFrame) { cancelAnimationFrame(animationFrame); animationFrame = null; }
     clearReadingLine();
 }
 
-/* --- GESTION DES COORDONNÉES --- */
+/* --- DESSIN --- */
 function canvasPosition(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     return {
@@ -337,7 +332,6 @@ function canvasPosition(clientX, clientY) {
     };
 }
 
-/* --- DESSIN TACTILE/SOURIS --- */
 function beginDrawing(event) {
     event.preventDefault();
     drawing = true;
@@ -351,8 +345,8 @@ function beginDrawing(event) {
     ctx.moveTo(p.x, p.y);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "black";
+    ctx.lineWidth = Number(brushSize.value);
+    ctx.strokeStyle = isErasing ? "white" : "black";
     ctx.lineTo(p.x + 0.01, p.y + 0.01);
     ctx.stroke();
 }
@@ -365,6 +359,10 @@ function draw(event) {
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(p.x, p.y);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Number(brushSize.value);
+    ctx.strokeStyle = isErasing ? "white" : "black";
     ctx.stroke();
     lastX = p.x; lastY = p.y;
 }
@@ -382,7 +380,6 @@ canvas.addEventListener("pointermove", draw, { passive: false });
 canvas.addEventListener("pointerup", endDrawing, { passive: false });
 canvas.addEventListener("pointercancel", endDrawing, { passive: false });
 
-/* --- EFFACER & IMAGE --- */
 clearBtn.addEventListener("click", () => {
     stopAudio();
     initCanvas();
@@ -412,14 +409,14 @@ imageInput.addEventListener("change", event => {
         ctx.putImageData(imageData, 0, 0);
         clearReadingLine();
         lastAudioBuffer = null;
-        status.textContent = "Image chargée en noir et blanc.";
+        status.textContent = "Image chargée.";
     };
     img.src = URL.createObjectURL(file);
 });
 
 advancedBtn.addEventListener("click", () => advanced.classList.toggle("visible"));
 
-/* --- ANALYSE & MOTEURS SONORES --- */
+/* --- DÉFINITION DES GAMMES ET FREQUENCES --- */
 function darkness(data, index) {
     const luminance = 0.299 * data[index] + 0.587 * data[index+1] + 0.114 * data[index+2];
     return 1 - luminance / 255;
@@ -448,40 +445,127 @@ function frequencyFromY(y) {
     return 440 * Math.pow(2, (note - 69) / 12);
 }
 
-function analyseColumn(x) {
-    const image = ctx.getImageData(Math.floor(x), 0, 1, canvas.height);
-    const data = image.data;
-    let sum = 0, weightedY = 0, count = 0;
-    for (let y = 0; y < canvas.height; y++) {
-        const d = darkness(data, y * 4);
-        if (d > 0.08) {
-            sum += d;
-            weightedY += y * d;
-            count++;
-        }
-    }
-    if (sum <= 0.001) return null;
-    return { y: weightedY / sum, density: Math.min(1, sum / (canvas.height * 0.12)), pixels: count };
-}
-
-function analyseDrawing() {
+/* --- LOGIQUE DISTINCTE DES 4 MOTEURS --- */
+function processAudioEngine(ac, duration) {
+    const samplesCount = Number(binsInput.value);
+    const length = Math.floor(duration * ac.sampleRate);
+    const buffer = ac.createBuffer(1, length, ac.sampleRate);
+    const output = buffer.getChannelData(0);
     const mode = modeSelect.value;
-    const samples = Math.max(256, Math.min(1200, Number(binsInput.value) * 5));
-    
-    // Logique simplifiée unifiée pour la démo
-    const frequencies = [], amplitudes = [];
-    for (let i = 0; i < samples; i++) {
-        const x = i * canvas.width / (samples - 1);
-        const col = analyseColumn(x);
-        if (!col) {
-            frequencies.push(null);
-            amplitudes.push(0);
-        } else {
-            frequencies.push(frequencyFromY(col.y));
-            amplitudes.push(Math.min(1, col.density));
+
+    // --- MOTEUR 1 : PIXELS (Synthèse Additive Pure) ---
+    if (mode === "spectral") {
+        const numOsc = 64; // Nombre de bandes de hauteur
+        const oscPhases = new Float32Array(numOsc);
+        
+        for (let i = 0; i < length; i++) {
+            const progress = i / length;
+            const x = Math.floor(progress * canvas.width);
+            const colData = ctx.getImageData(x, 0, 1, canvas.height).data;
+            
+            let sampleAcc = 0;
+            let activeCount = 0;
+
+            for (let osc = 0; osc < numOsc; osc++) {
+                const y = Math.floor((1 - (osc / numOsc)) * canvas.height);
+                const dark = darkness(colData, y * 4);
+                if (dark > 0.05) {
+                    const freq = frequencyFromY(y);
+                    oscPhases[osc] += (freq / ac.sampleRate);
+                    sampleAcc += Math.sin(oscPhases[osc] * Math.PI * 2) * dark;
+                    activeCount++;
+                }
+            }
+            output[i] = activeCount > 0 ? (sampleAcc / Math.sqrt(activeCount)) * 0.3 : 0;
+        }
+    } 
+
+    // --- MOTEUR 2 : CONTOURS (Ligne Mélodique Unifiée) ---
+    else if (mode === "contours") {
+        let phase = 0;
+        let currentFreq = 0;
+
+        for (let i = 0; i < length; i++) {
+            const progress = i / length;
+            const x = Math.floor(progress * canvas.width);
+            const colData = ctx.getImageData(x, 0, 1, canvas.height).data;
+
+            // Détection du point le plus foncé (ligne principale)
+            let maxDark = 0, bestY = -1;
+            for (let y = 0; y < canvas.height; y += 2) {
+                const dark = darkness(colData, y * 4);
+                if (dark > maxDark) { maxDark = dark; bestY = y; }
+            }
+
+            if (bestY !== -1 && maxDark > 0.1) {
+                const targetFreq = frequencyFromY(bestY);
+                currentFreq += (targetFreq - currentFreq) * 0.05; // Glissando fluide
+                phase += currentFreq / ac.sampleRate;
+                // Onde triangle douce
+                output[i] = (1 - 4 * Math.abs((phase % 1) - 0.5)) * maxDark * 0.6;
+            } else {
+                output[i] = 0;
+            }
         }
     }
-    return { frequencies, amplitudes };
+
+    // --- MOTEUR 3 : McLAREN (Orientation, Pente & Trajectoire) ---
+    else if (mode === "mclaren") {
+        let phase = 0;
+        let lastY = canvas.height / 2;
+
+        for (let i = 0; i < length; i++) {
+            const progress = i / length;
+            const x = Math.floor(progress * canvas.width);
+            const colData = ctx.getImageData(x, 0, 1, canvas.height).data;
+
+            let weightedY = 0, totalDark = 0;
+            for (let y = 0; y < canvas.height; y += 4) {
+                const dark = darkness(colData, y * 4);
+                if (dark > 0.1) { weightedY += y * dark; totalDark += dark; }
+            }
+
+            if (totalDark > 0) {
+                const currentY = weightedY / totalDark;
+                const slope = (lastY - currentY); // Pente de la ligne
+                lastY = currentY;
+
+                const baseFreq = frequencyFromY(currentY);
+                phase += baseFreq / ac.sampleRate;
+                
+                // La pente modifie la richesse harmonique (Bite / Timbre)
+                const harmonic = Math.sin(phase * Math.PI * 2) + Math.sin(phase * Math.PI * 4) * Math.min(1, Math.abs(slope) * 0.2);
+                output[i] = harmonic * Math.min(1, totalDark * 0.05) * 0.5;
+            } else {
+                output[i] = 0;
+            }
+        }
+    }
+
+    // --- MOTEUR 4 : MASSE (Nuage Granulaire basé sur la densité) ---
+    else if (mode === "density") {
+        for (let i = 0; i < length; i++) {
+            const progress = i / length;
+            const x = Math.floor(progress * canvas.width);
+            const colData = ctx.getImageData(x, 0, 1, canvas.height).data;
+
+            let darkCount = 0;
+            for (let y = 0; y < canvas.height; y += 8) {
+                if (darkness(colData, y * 4) > 0.1) darkCount++;
+            }
+
+            const density = darkCount / (canvas.height / 8);
+            if (density > 0) {
+                // Bruit filtré / granulaire
+                const noise = (Math.random() * 2 - 1);
+                output[i] = noise * density * 0.5;
+            } else {
+                output[i] = 0;
+            }
+        }
+    }
+
+    return buffer;
 }
 
 function ensureAudio() {
@@ -489,63 +573,18 @@ function ensureAudio() {
     return audioContext;
 }
 
-function waveformSample(phase, waveform) {
-    phase = phase - Math.floor(phase);
-    if (waveform === "triangle") return 1 - 4 * Math.abs(phase - 0.5);
-    if (waveform === "soft") return Math.sin(phase * Math.PI * 2) * 0.82 + Math.sin(phase * Math.PI * 4) * 0.18;
-    return Math.sin(phase * Math.PI * 2);
-}
-
-function generateAudioBuffer() {
-    const duration = Math.max(1, Math.min(60, Number(durationInput.value) || 8));
-    const analysis = analyseDrawing();
-    if (!analysis || !analysis.amplitudes.some(a => a > 0.01)) return null;
-
-    const ac = ensureAudio();
-    const length = Math.floor(duration * ac.sampleRate);
-    const buffer = ac.createBuffer(1, length, ac.sampleRate);
-    const output = buffer.getChannelData(0);
-    const { frequencies, amplitudes } = analysis;
-    const waveform = waveformSelect.value;
-    const bins = frequencies.length;
-    let phase = 0, previousFreq = null;
-
-    for (let i = 0; i < length; i++) {
-        const t = i / ac.sampleRate;
-        const pos = (t / duration) * (bins - 1);
-        const index = Math.min(bins - 1, Math.floor(pos));
-        const frac = pos - index;
-        const f1 = frequencies[index], f2 = frequencies[Math.min(bins - 1, index + 1)] || f1;
-        const a1 = amplitudes[index] || 0, a2 = amplitudes[Math.min(bins - 1, index + 1)] || 0;
-
-        if (f1 === null) {
-            output[i] = 0;
-            previousFreq = null;
-            continue;
-        }
-
-        const freq = f1 + (f2 - f1) * frac;
-        const amp = a1 + (a2 - a1) * frac;
-        previousFreq = previousFreq === null ? freq : previousFreq + (freq - previousFreq) * 0.08;
-        phase += previousFreq / ac.sampleRate;
-
-        output[i] = waveformSample(phase, waveform) * amp * 0.8;
-    }
-    return buffer;
-}
-
 async function playAudio() {
     stopAudio();
-    status.textContent = "Génération du son…";
-    await new Promise(r => setTimeout(r, 10));
+    status.textContent = "Calcul de la synthèse...";
+    await new Promise(r => setTimeout(r, 20));
 
-    let buffer;
-    try { buffer = generateAudioBuffer(); } catch (e) { console.error(e); status.textContent = "Erreur audio."; return; }
-    if (!buffer) { status.textContent = "Dessin vide."; return; }
-
-    lastAudioBuffer = buffer;
     const ac = ensureAudio();
     if (ac.state === "suspended") await ac.resume();
+
+    const duration = Math.max(1, Math.min(60, Number(durationInput.value) || 8));
+    const buffer = processAudioEngine(ac, duration);
+
+    lastAudioBuffer = buffer;
 
     const source = ac.createBufferSource();
     const gain = ac.createGain();
@@ -565,7 +604,7 @@ async function playAudio() {
     };
 
     source.start();
-    status.textContent = "Lecture en cours…";
+    status.textContent = "Lecture en cours (" + modeSelect.options[modeSelect.selectedIndex].text + ")…";
     startReadingAnimation();
 }
 
@@ -582,21 +621,16 @@ playUnderBtn.addEventListener("click", playAudio);
 stopBtn.addEventListener("click", () => { stopAudio(); status.textContent = "Arrêté."; });
 stopUnderBtn.addEventListener("click", () => { stopAudio(); status.textContent = "Arrêté."; });
 
-/* --- SPECTROGRAMME (Minimal simplifié & fluide) --- */
 spectrogramBtn.addEventListener("click", () => {
     if (!lastAudioBuffer) {
-        lastAudioBuffer = generateAudioBuffer();
+        const ac = ensureAudio();
+        lastAudioBuffer = processAudioEngine(ac, Number(durationInput.value) || 8);
     }
-    if (!lastAudioBuffer) {
-        status.textContent = "Rien à analyser.";
-        return;
-    }
-    // Simple rendu visuel Waveform pour la modale
     const data = lastAudioBuffer.getChannelData(0);
     const wCtx = waveformCtx;
-    wCtx.fillStyle = "#fff";
+    wCtx.fillStyle = "#111";
     wCtx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
-    wCtx.strokeStyle = "#000";
+    wCtx.strokeStyle = "#00ffcc";
     wCtx.beginPath();
     for (let x = 0; x < waveformCanvas.width; x++) {
         const idx = Math.floor(x * data.length / waveformCanvas.width);
@@ -606,7 +640,6 @@ spectrogramBtn.addEventListener("click", () => {
     wCtx.stroke();
 
     spectrogramModal.classList.add("visible");
-    status.textContent = "Spectrogramme ouvert.";
 });
 
 closeSpectrogramBtn.addEventListener("click", () => spectrogramModal.classList.remove("visible"));
