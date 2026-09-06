@@ -1,46 +1,16 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<title>Dessin Sonore — V3.7</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dessin Sonore — V3.8</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    background: #111;
-    color: #eee;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-body {
-    min-height: 100vh;
-}
-
-header {
-    padding: 16px 20px 10px;
-    border-bottom: 1px solid #333;
-}
-
-h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 500;
-}
-
-.version {
-    color: #888;
-    font-size: 12px;
-    margin-top: 4px;
-}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #111; color: #eee; font-family: Arial, Helvetica, sans-serif; min-height: 100vh; }
+header { padding: 16px 20px 10px; border-bottom: 1px solid #333; }
+h1 { margin: 0; font-size: 22px; font-weight: 500; }
+.version { color: #888; font-size: 12px; margin-top: 4px; }
 
 .controls {
     padding: 14px 20px;
@@ -48,76 +18,31 @@ h1 {
     flex-wrap: wrap;
     gap: 10px;
     border-bottom: 1px solid #333;
+    background: #141414;
 }
 
-.group {
-    display: flex;
-    align-items: center;
-    gap: 7px;
+.group { display: flex; align-items: center; gap: 7px; }
+label { font-size: 13px; color: #bbb; }
+button, select, input[type="number"], input[type="range"] { font: inherit; }
+button, select, input[type="number"] {
+    background: #222; color: #eee; border: 1px solid #555; border-radius: 5px; padding: 7px 10px; cursor: pointer;
 }
+button:hover { background: #303030; }
+input[type="range"] { width: 110px; }
 
-label {
-    font-size: 13px;
-    color: #bbb;
-}
+main { max-width: 1100px; margin: auto; padding: 18px; }
+.canvas-wrap { width: 100%; display: flex; justify-content: center; }
+.canvas-stage { position: relative; width: 100%; max-width: 900px; }
 
-button,
-select,
-input[type="number"],
-input[type="range"] {
-    font: inherit;
-}
-
-button,
-select,
-input[type="number"] {
-    background: #222;
-    color: #eee;
-    border: 1px solid #555;
-    border-radius: 5px;
-    padding: 7px 10px;
-}
-
-button {
-    cursor: pointer;
-}
-
-button:hover {
-    background: #303030;
-}
-
-button.active {
-    background: #eee;
-    color: #111;
-}
-
-input[type="range"] {
-    width: 110px;
-}
-
-main {
-    max-width: 1100px;
-    margin: auto;
-    padding: 18px;
-}
-
-.canvas-wrap {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-.canvas-stage {
-    position: relative;
-    width: 100%;
-    max-width: 900px;
-}
-
-#canvas {
+#canvas, #readingCanvas {
     width: 100%;
     max-width: 900px;
     height: auto;
     display: block;
+    aspect-ratio: 900 / 650;
+}
+
+#canvas {
     background: white;
     border: 1px solid #444;
     touch-action: none;
@@ -128,8 +53,6 @@ main {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
     border: 0;
     background: transparent;
     pointer-events: none;
@@ -143,42 +66,14 @@ main {
     align-items: center;
     gap: 8px;
 }
+.read-controls button { min-width: 105px; }
 
-.read-controls button {
-    min-width: 105px;
-}
+.info { margin-top: 12px; color: #999; font-size: 13px; line-height: 1.5; }
+.advanced { display: none; padding: 12px 20px; border-bottom: 1px solid #333; background: #171717; }
+.advanced.visible { display: flex; flex-wrap: wrap; gap: 15px; }
+.status { margin-top: 8px; font-size: 12px; color: #777; }
 
-.info {
-    margin-top: 12px;
-    color: #999;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.advanced {
-    display: none;
-    padding: 12px 20px;
-    border-bottom: 1px solid #333;
-    background: #171717;
-}
-
-.advanced.visible {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.status {
-    margin-top: 8px;
-    font-size: 12px;
-    color: #777;
-}
-
-
-/* ---------------------------------------------------------
-   FENETRE SPECTROGRAMME
---------------------------------------------------------- */
-
+/* SPECTROGRAMME MODAL */
 .spectrogram-modal {
     display: none;
     position: fixed;
@@ -189,11 +84,7 @@ main {
     justify-content: center;
     padding: 20px;
 }
-
-.spectrogram-modal.visible {
-    display: flex;
-}
-
+.spectrogram-modal.visible { display: flex; }
 .spectrogram-box {
     width: min(1000px, 96vw);
     max-height: 92vh;
@@ -203,88 +94,34 @@ main {
     padding: 16px;
     overflow: auto;
 }
+.spectrogram-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 12px; }
+.spectrogram-title { font-size: 17px; color: #eee; }
+.spectrogram-description { color: #999; font-size: 12px; margin-bottom: 12px; }
 
-.spectrogram-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    margin-bottom: 12px;
-}
-
-.spectrogram-title {
-    font-size: 17px;
-    color: #eee;
-}
-
-.spectrogram-description {
-    color: #999;
-    font-size: 12px;
-    margin-bottom: 12px;
-}
-
-#spectrogramCanvas {
+#spectrogramCanvas, #waveformCanvas {
     width: 100%;
     height: auto;
     display: block;
     background: #fff;
     border: 1px solid #444;
 }
-
-.waveform-title {
-    margin-top: 18px;
-    margin-bottom: 8px;
-    font-size: 13px;
-    color: #bbb;
-}
-
-#waveformCanvas {
-    width: 100%;
-    height: auto;
-    display: block;
-    background: #fff;
-    border: 1px solid #444;
-}
+.waveform-title { margin-top: 18px; margin-bottom: 8px; font-size: 13px; color: #bbb; }
 
 @media (max-width: 700px) {
-    header {
-        padding: 12px 14px 8px;
-    }
-
-    main {
-        padding: 10px;
-    }
-
-    .controls {
-        padding: 10px 14px;
-    }
-
-    button,
-    select,
-    input[type="number"] {
-        padding: 8px 9px;
-    }
-
-    .group {
-        flex-wrap: wrap;
-    }
-
-    input[type="range"] {
-        width: 90px;
-    }
+    header { padding: 12px 14px 8px; }
+    main { padding: 10px; }
+    .controls { padding: 10px 14px; }
 }
 </style>
 </head>
-
 <body>
 
 <header>
     <h1>Dessin Sonore</h1>
-    <div class="version">V3.7 — trajectoires, masses musicales et lecture audio</div>
+    <div class="version">V3.8 — Optimisée & Corrigée</div>
 </header>
 
 <div class="controls">
-
     <div class="group">
         <label>Moteur</label>
         <select id="mode">
@@ -332,3819 +169,447 @@ main {
     <button id="clear">Effacer</button>
     <button id="spectrogram">Spectrogramme</button>
 
-    <label style="display:flex;align-items:center;gap:5px;">
+    <div class="group">
         <input type="file" id="imageInput" accept="image/*">
-    </label>
+    </div>
 
     <button id="advancedBtn">Réglages avancés</button>
 </div>
 
 <div id="advanced" class="advanced">
-
-    <div class="group">
-        <label>F min</label>
-        <input id="fmin" type="number" value="110" min="20" max="2000">
-    </div>
-
-    <div class="group">
-        <label>F max</label>
-        <input id="fmax" type="number" value="880" min="50" max="5000">
-    </div>
-
-    <div class="group">
-        <label>Bins</label>
-        <input id="bins" type="number" value="128" min="32" max="512">
-    </div>
-
-    <div class="group">
-        <label>McLaren sensibilité</label>
-        <input id="mclarenSensitivity"
-               type="range"
-               min="0"
-               max="2"
-               value="0.8"
-               step="0.01">
-    </div>
-
-    <div class="group">
-        <label>Masse richesse</label>
-        <input id="massRichness"
-               type="range"
-               min="0"
-               max="1"
-               value="0.55"
-               step="0.01">
-    </div>
-
+    <div class="group"><label>F min</label><input id="fmin" type="number" value="110" min="20" max="2000"></div>
+    <div class="group"><label>F max</label><input id="fmax" type="number" value="880" min="50" max="5000"></div>
+    <div class="group"><label>Bins</label><input id="bins" type="number" value="128" min="32" max="512"></div>
+    <div class="group"><label>McLaren sensibilité</label><input id="mclarenSensitivity" type="range" min="0" max="2" value="0.8" step="0.01"></div>
+    <div class="group"><label>Masse richesse</label><input id="massRichness" type="range" min="0" max="1" value="0.55" step="0.01"></div>
 </div>
 
 <main>
-
     <div class="canvas-wrap">
-
         <div class="canvas-stage">
-
-            <canvas id="canvas"
-                    width="900"
-                    height="650"></canvas>
-
-            <!--
-                Canvas indépendant.
-                La ligne de lecture n'est donc jamais
-                dessinée dans l'image elle-même.
-            -->
-            <canvas id="readingCanvas"
-                    width="900"
-                    height="650"></canvas>
-
+            <canvas id="canvas" width="900" height="650"></canvas>
+            <canvas id="readingCanvas" width="900" height="650"></canvas>
         </div>
-
     </div>
 
-    <!-- Bouton Lecture sous le dessin -->
     <div class="read-controls">
         <button id="playUnder">▶ Lecture</button>
         <button id="stopUnder">■ Stop</button>
     </div>
 
     <div class="info">
-        <strong>Principe :</strong>
-        le dessin n'est pas simplement transformé en une mélodie.
-        Chaque moteur propose une manière différente de lire la trace.
-        <br><br>
-
-        <strong>Pixels</strong> : le dessin est lu comme une partition spatiale.
-        <strong>McLaren</strong> : le dessin devient une trajectoire.
-        <strong>Masse</strong> : les zones dessinées deviennent un champ sonore continu.
+        <strong>Principe :</strong> Chaque moteur lit la trace visuelle selon une approche unique (spatiale, vectorielle ou granulaire).
     </div>
 
-    <div id="status" class="status">
-        Prêt.
-    </div>
-
+    <div id="status" class="status">Prêt.</div>
 </main>
 
-
-<!-- =======================================================
-     SPECTROGRAMME
-======================================================== -->
-
-<div id="spectrogramModal"
-     class="spectrogram-modal">
-
+<!-- SPECTROGRAMME MODAL -->
+<div id="spectrogramModal" class="spectrogram-modal">
     <div class="spectrogram-box">
-
         <div class="spectrogram-header">
-
-            <div class="spectrogram-title">
-                Lecture du son
-            </div>
-
-            <button id="closeSpectrogram">
-                Fermer
-            </button>
-
+            <div class="spectrogram-title">Analyse du signal audio</div>
+            <button id="closeSpectrogram">Fermer</button>
         </div>
-
-        <div class="spectrogram-description">
-            Cette représentation est calculée à partir du signal audio
-            réellement généré par le moteur sonore. Elle ne modifie pas
-            le dessin.
-        </div>
-
-        <canvas id="spectrogramCanvas"
-                width="900"
-                height="420"></canvas>
-
-        <div class="waveform-title">
-            Forme d'onde du signal audio
-        </div>
-
-        <canvas id="waveformCanvas"
-                width="900"
-                height="180"></canvas>
-
+        <div class="spectrogram-description">Représentation temps-fréquence générée à partir du rendu audio réel.</div>
+        <canvas id="spectrogramCanvas" width="900" height="420"></canvas>
+        <div class="waveform-title">Forme d'onde</div>
+        <canvas id="waveformCanvas" width="900" height="180"></canvas>
     </div>
-
 </div>
 
-
 <script>
-
 /* =========================================================
-   DESSIN SONORE — V3.7
-   =========================================================
+   DESSIN SONORE — V3.8 (Logique consolidée)
+   ========================================================= */
 
-   BASE :
-   V3.6 fournie par l'utilisateur.
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
+const readingCanvas = document.getElementById("readingCanvas");
+const readingCtx = readingCanvas.getContext("2d");
 
-   CORRECTIONS :
-   - ligne de lecture indépendante
-   - bouton Lecture sous le dessin
-   - import d'image en niveaux de gris
-   - spectrogramme basé sur l'audio
-   - aucun dessin détruit par le spectrogramme
-   - conservation des moteurs V3.6
-   - conservation de la Masse sans bruit
-========================================================= */
+const modeSelect = document.getElementById("mode");
+const scaleSelect = document.getElementById("scale");
+const durationInput = document.getElementById("duration");
+const volumeInput = document.getElementById("volume");
+const waveformSelect = document.getElementById("waveform");
+const fminInput = document.getElementById("fmin");
+const fmaxInput = document.getElementById("fmax");
+const binsInput = document.getElementById("bins");
+const mclarenSensitivity = document.getElementById("mclarenSensitivity");
+const massRichness = document.getElementById("massRichness");
 
+const status = document.getElementById("status");
+const advancedBtn = document.getElementById("advancedBtn");
+const advanced = document.getElementById("advanced");
+const imageInput = document.getElementById("imageInput");
 
-/* ---------------------------------------------------------
-   ELEMENTS
---------------------------------------------------------- */
+const playBtn = document.getElementById("play");
+const stopBtn = document.getElementById("stop");
+const clearBtn = document.getElementById("clear");
+const spectrogramBtn = document.getElementById("spectrogram");
+const playUnderBtn = document.getElementById("playUnder");
+const stopUnderBtn = document.getElementById("stopUnder");
 
-const canvas =
-    document.getElementById("canvas");
-
-const ctx =
-    canvas.getContext(
-        "2d",
-        { willReadFrequently: true }
-    );
-
-
-const readingCanvas =
-    document.getElementById(
-        "readingCanvas"
-    );
-
-const readingCtx =
-    readingCanvas.getContext("2d");
-
-
-const modeSelect =
-    document.getElementById("mode");
-
-const scaleSelect =
-    document.getElementById("scale");
-
-const durationInput =
-    document.getElementById("duration");
-
-const volumeInput =
-    document.getElementById("volume");
-
-const waveformSelect =
-    document.getElementById("waveform");
-
-
-const fminInput =
-    document.getElementById("fmin");
-
-const fmaxInput =
-    document.getElementById("fmax");
-
-const binsInput =
-    document.getElementById("bins");
-
-
-const mclarenSensitivity =
-    document.getElementById(
-        "mclarenSensitivity"
-    );
-
-const massRichness =
-    document.getElementById(
-        "massRichness"
-    );
-
-
-const status =
-    document.getElementById("status");
-
-
-const advancedBtn =
-    document.getElementById(
-        "advancedBtn"
-    );
-
-const advanced =
-    document.getElementById(
-        "advanced"
-    );
-
-
-const imageInput =
-    document.getElementById(
-        "imageInput"
-    );
-
-
-const playBtn =
-    document.getElementById("play");
-
-const stopBtn =
-    document.getElementById("stop");
-
-const clearBtn =
-    document.getElementById("clear");
-
-const spectrogramBtn =
-    document.getElementById(
-        "spectrogram"
-    );
-
-
-const playUnderBtn =
-    document.getElementById(
-        "playUnder"
-    );
-
-const stopUnderBtn =
-    document.getElementById(
-        "stopUnder"
-    );
-
-
-const spectrogramModal =
-    document.getElementById(
-        "spectrogramModal"
-    );
-
-const closeSpectrogramBtn =
-    document.getElementById(
-        "closeSpectrogram"
-    );
-
-const spectrogramCanvas =
-    document.getElementById(
-        "spectrogramCanvas"
-    );
-
-const spectrogramCtx =
-    spectrogramCanvas.getContext("2d");
-
-
-const waveformCanvas =
-    document.getElementById(
-        "waveformCanvas"
-    );
-
-const waveformCtx =
-    waveformCanvas.getContext("2d");
-
-
-/* ---------------------------------------------------------
-   AUDIO
---------------------------------------------------------- */
+const spectrogramModal = document.getElementById("spectrogramModal");
+const closeSpectrogramBtn = document.getElementById("closeSpectrogram");
+const spectrogramCanvas = document.getElementById("spectrogramCanvas");
+const spectrogramCtx = spectrogramCanvas.getContext("2d");
+const waveformCanvas = document.getElementById("waveformCanvas");
+const waveformCtx = waveformCanvas.getContext("2d");
 
 let audioContext = null;
-
 let currentSource = null;
-
 let lastAudioBuffer = null;
-
 let playbackStartedAt = 0;
-
 let playbackDuration = 0;
-
 let animationFrame = null;
 
-
-/* ---------------------------------------------------------
-   DESSIN
---------------------------------------------------------- */
-
 let drawing = false;
-
 let activePointerId = null;
-
-let lastX = 0;
-
-let lastY = 0;
-
-
-/* =========================================================
-   INITIALISATION
-========================================================= */
+let lastX = 0, lastY = 0;
 
 function initCanvas() {
-
     ctx.fillStyle = "white";
-
-    ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     clearReadingLine();
 }
-
-
 initCanvas();
 
-
-/* =========================================================
-   LIGNE DE LECTURE
-========================================================= */
-
+/* --- LIGNE DE LECTURE --- */
 function clearReadingLine() {
-
-    readingCtx.clearRect(
-        0,
-        0,
-        readingCanvas.width,
-        readingCanvas.height
-    );
+    readingCtx.clearRect(0, 0, readingCanvas.width, readingCanvas.height);
 }
 
-
 function drawReadingLine(progress) {
-
     clearReadingLine();
-
-    if (
-        progress < 0 ||
-        progress > 1
-    ) {
-        return;
-    }
-
-    const x =
-        progress *
-        readingCanvas.width;
-
+    if (progress < 0 || progress > 1) return;
+    const x = progress * readingCanvas.width;
     readingCtx.save();
-
     readingCtx.strokeStyle = "#000";
-
     readingCtx.lineWidth = 2;
-
     readingCtx.globalAlpha = 0.75;
-
     readingCtx.beginPath();
-
-    readingCtx.moveTo(
-        x,
-        0
-    );
-
-    readingCtx.lineTo(
-        x,
-        readingCanvas.height
-    );
-
+    readingCtx.moveTo(x, 0);
+    readingCtx.lineTo(x, readingCanvas.height);
     readingCtx.stroke();
-
     readingCtx.restore();
 }
 
-
 function animateReadingLine() {
-
-    if (
-        !currentSource ||
-        playbackDuration <= 0
-    ) {
+    if (!currentSource || playbackDuration <= 0) {
         clearReadingLine();
         animationFrame = null;
         return;
     }
-
-    const elapsed =
-        (
-            performance.now() -
-            playbackStartedAt
-        ) / 1000;
-
-    const progress =
-        Math.max(
-            0,
-            Math.min(
-                1,
-                elapsed /
-                playbackDuration
-            )
-        );
-
+    const elapsed = (performance.now() - playbackStartedAt) / 1000;
+    const progress = Math.max(0, Math.min(1, elapsed / playbackDuration));
     drawReadingLine(progress);
 
-    if (
-        progress < 1 &&
-        currentSource
-    ) {
-
-        animationFrame =
-            requestAnimationFrame(
-                animateReadingLine
-            );
-
+    if (progress < 1 && currentSource) {
+        animationFrame = requestAnimationFrame(animateReadingLine);
     } else {
-
         clearReadingLine();
-
         animationFrame = null;
     }
 }
-
 
 function startReadingAnimation() {
-
-    if (animationFrame) {
-
-        cancelAnimationFrame(
-            animationFrame
-        );
-
-    }
-
-    playbackStartedAt =
-        performance.now();
-
-    animationFrame =
-        requestAnimationFrame(
-            animateReadingLine
-        );
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    playbackStartedAt = performance.now();
+    animationFrame = requestAnimationFrame(animateReadingLine);
 }
 
-
 function stopReadingAnimation() {
-
     if (animationFrame) {
-
-        cancelAnimationFrame(
-            animationFrame
-        );
-
+        cancelAnimationFrame(animationFrame);
         animationFrame = null;
     }
-
     clearReadingLine();
 }
 
-
-/* =========================================================
-   COORDONNEES CANVAS
-========================================================= */
-
-function canvasPosition(
-    clientX,
-    clientY
-) {
-
-    const rect =
-        canvas.getBoundingClientRect();
-
-    const scaleX =
-        canvas.width /
-        rect.width;
-
-    const scaleY =
-        canvas.height /
-        rect.height;
-
+/* --- GESTION DES COORDONNÉES --- */
+function canvasPosition(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
     return {
-
-        x: Math.max(
-            0,
-            Math.min(
-                canvas.width,
-                (
-                    clientX -
-                    rect.left
-                ) * scaleX
-            )
-        ),
-
-        y: Math.max(
-            0,
-            Math.min(
-                canvas.height,
-                (
-                    clientY -
-                    rect.top
-                ) * scaleY
-            )
-        )
+        x: Math.max(0, Math.min(canvas.width, (clientX - rect.left) * (canvas.width / rect.width))),
+        y: Math.max(0, Math.min(canvas.height, (clientY - rect.top) * (canvas.height / rect.height)))
     };
 }
 
-
-/* =========================================================
-   DESSIN
-========================================================= */
-
+/* --- DESSIN TACTILE/SOURIS --- */
 function beginDrawing(event) {
-
     event.preventDefault();
-
     drawing = true;
+    activePointerId = event.pointerId;
+    try { canvas.setPointerCapture(event.pointerId); } catch (e) {}
 
-    activePointerId =
-        event.pointerId;
-
-    try {
-
-        canvas.setPointerCapture(
-            event.pointerId
-        );
-
-    } catch (e) {}
-
-
-    const p =
-        canvasPosition(
-            event.clientX,
-            event.clientY
-        );
-
-
-    lastX = p.x;
-
-    lastY = p.y;
-
+    const p = canvasPosition(event.clientX, event.clientY);
+    lastX = p.x; lastY = p.y;
 
     ctx.beginPath();
-
-    ctx.moveTo(
-        p.x,
-        p.y
-    );
-
-
-    ctx.lineCap =
-        "round";
-
-    ctx.lineJoin =
-        "round";
-
-    ctx.lineWidth =
-        4;
-
-    ctx.strokeStyle =
-        "black";
-
-
-    ctx.lineTo(
-        p.x + 0.01,
-        p.y + 0.01
-    );
-
+    ctx.moveTo(p.x, p.y);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "black";
+    ctx.lineTo(p.x + 0.01, p.y + 0.01);
     ctx.stroke();
 }
-
 
 function draw(event) {
-
-    if (!drawing) {
-        return;
-    }
-
-
-    if (
-        activePointerId !== null &&
-        event.pointerId !== activePointerId
-    ) {
-        return;
-    }
-
-
+    if (!drawing || (activePointerId !== null && event.pointerId !== activePointerId)) return;
     event.preventDefault();
-
-
-    const p =
-        canvasPosition(
-            event.clientX,
-            event.clientY
-        );
-
+    const p = canvasPosition(event.clientX, event.clientY);
 
     ctx.beginPath();
-
-    ctx.moveTo(
-        lastX,
-        lastY
-    );
-
-    ctx.lineTo(
-        p.x,
-        p.y
-    );
-
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(p.x, p.y);
     ctx.stroke();
-
-
-    lastX = p.x;
-
-    lastY = p.y;
+    lastX = p.x; lastY = p.y;
 }
 
-
 function endDrawing(event) {
-
-    if (
-        activePointerId !== null &&
-        event.pointerId !== activePointerId
-    ) {
-        return;
-    }
-
-
+    if (activePointerId !== null && event.pointerId !== activePointerId) return;
     event.preventDefault();
-
     drawing = false;
-
-
-    try {
-
-        canvas.releasePointerCapture(
-            event.pointerId
-        );
-
-    } catch (e) {}
-
-
+    try { canvas.releasePointerCapture(event.pointerId); } catch (e) {}
     activePointerId = null;
 }
 
+canvas.addEventListener("pointerdown", beginDrawing, { passive: false });
+canvas.addEventListener("pointermove", draw, { passive: false });
+canvas.addEventListener("pointerup", endDrawing, { passive: false });
+canvas.addEventListener("pointercancel", endDrawing, { passive: false });
 
-canvas.addEventListener(
-    "pointerdown",
-    beginDrawing,
-    { passive: false }
-);
+/* --- EFFACER & IMAGE --- */
+clearBtn.addEventListener("click", () => {
+    stopAudio();
+    initCanvas();
+    lastAudioBuffer = null;
+    imageInput.value = "";
+    status.textContent = "Dessin effacé.";
+});
 
-canvas.addEventListener(
-    "pointermove",
-    draw,
-    { passive: false }
-);
+imageInput.addEventListener("change", event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+        const w = img.width * ratio, h = img.height * ratio;
+        const x = (canvas.width - w) / 2, y = (canvas.height - h) / 2;
+        ctx.drawImage(img, x, y, w, h);
 
-canvas.addEventListener(
-    "pointerup",
-    endDrawing,
-    { passive: false }
-);
-
-canvas.addEventListener(
-    "pointercancel",
-    endDrawing,
-    { passive: false }
-);
-
-
-/* =========================================================
-   EFFACER
-========================================================= */
-
-clearBtn.addEventListener(
-    "click",
-    () => {
-
-        stopAudio();
-
-        ctx.clearRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-        ctx.fillStyle =
-            "white";
-
-        ctx.fillRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-        clearReadingLine();
-
-        lastAudioBuffer = null;
-
-        imageInput.value = "";
-
-        status.textContent =
-            "Dessin effacé.";
-    }
-);
-
-
-/* =========================================================
-   IMAGE
-========================================================= */
-
-imageInput.addEventListener(
-    "change",
-    event => {
-
-        const file =
-            event.target.files[0];
-
-        if (!file) {
-            return;
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const gray = Math.round(0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
+            data[i] = data[i+1] = data[i+2] = gray;
         }
+        ctx.putImageData(imageData, 0, 0);
+        clearReadingLine();
+        lastAudioBuffer = null;
+        status.textContent = "Image chargée en noir et blanc.";
+    };
+    img.src = URL.createObjectURL(file);
+});
 
+advancedBtn.addEventListener("click", () => advanced.classList.toggle("visible"));
 
-        const img =
-            new Image();
-
-
-        img.onload = () => {
-
-            /*
-             * On efface d'abord.
-             */
-
-            ctx.fillStyle =
-                "white";
-
-            ctx.fillRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-
-
-            const ratio =
-                Math.min(
-                    canvas.width /
-                    img.width,
-
-                    canvas.height /
-                    img.height
-                );
-
-
-            const w =
-                img.width *
-                ratio;
-
-            const h =
-                img.height *
-                ratio;
-
-
-            const x =
-                (
-                    canvas.width -
-                    w
-                ) / 2;
-
-            const y =
-                (
-                    canvas.height -
-                    h
-                ) / 2;
-
-
-            /*
-             * On dessine d'abord l'image.
-             */
-
-            ctx.drawImage(
-                img,
-                x,
-                y,
-                w,
-                h
-            );
-
-
-            /*
-             * Puis conversion obligatoire
-             * en niveaux de gris.
-             *
-             * L'image visible est donc elle-même
-             * noir et blanc, comme dans V2.1.
-             */
-
-            const imageData =
-                ctx.getImageData(
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height
-                );
-
-
-            const data =
-                imageData.data;
-
-
-            for (
-                let i = 0;
-                i < data.length;
-                i += 4
-            ) {
-
-                const gray =
-                    Math.round(
-                        0.299 * data[i] +
-                        0.587 * data[i + 1] +
-                        0.114 * data[i + 2]
-                    );
-
-
-                data[i] =
-                    gray;
-
-                data[i + 1] =
-                    gray;
-
-                data[i + 2] =
-                    gray;
-
-                /*
-                 * alpha conservé
-                 */
-            }
-
-
-            ctx.putImageData(
-                imageData,
-                0,
-                0
-            );
-
-
-            clearReadingLine();
-
-            lastAudioBuffer = null;
-
-
-            status.textContent =
-                "Image chargée en noir et blanc.";
-        };
-
-
-        img.onerror = () => {
-
-            status.textContent =
-                "Impossible de charger l'image.";
-        };
-
-
-        img.src =
-            URL.createObjectURL(file);
-    }
-);
-
-
-/* =========================================================
-   REGLAGES AVANCES
-========================================================= */
-
-advancedBtn.addEventListener(
-    "click",
-    () => {
-
-        advanced.classList.toggle(
-            "visible"
-        );
-
-    }
-);
-
-
-/* =========================================================
-   OUTILS D'ANALYSE
-========================================================= */
-
-function darkness(
-    data,
-    index
-) {
-
-    const r =
-        data[index];
-
-    const g =
-        data[index + 1];
-
-    const b =
-        data[index + 2];
-
-
-    const luminance =
-        0.299 * r +
-        0.587 * g +
-        0.114 * b;
-
-
-    return 1 -
-        luminance / 255;
+/* --- ANALYSE & MOTEURS SONORES --- */
+function darkness(data, index) {
+    const luminance = 0.299 * data[index] + 0.587 * data[index+1] + 0.114 * data[index+2];
+    return 1 - luminance / 255;
 }
-
-
-/* =========================================================
-   FREQUENCE -> NOTE / GAMME
-========================================================= */
 
 function frequencyFromY(y) {
+    const fmin = Number(fminInput.value);
+    const fmax = Number(fmaxInput.value);
+    const normalized = 1 - y / canvas.height;
+    const scale = scaleSelect.value;
+    let freq = fmin * Math.pow(fmax / fmin, normalized);
 
-    const fmin =
-        Number(
-            fminInput.value
-        );
+    if (scale === "free") return freq;
 
-    const fmax =
-        Number(
-            fmaxInput.value
-        );
-
-
-    const normalized =
-        1 -
-        y / canvas.height;
-
-
-    const scale =
-        scaleSelect.value;
-
-
-    let freq =
-        fmin *
-        Math.pow(
-            fmax / fmin,
-            normalized
-        );
-
-
-    if (scale === "free") {
-
-        return freq;
-    }
-
-
-    const midi =
-        69 +
-        12 *
-        Math.log2(
-            freq / 440
-        );
-
-
+    const midi = 69 + 12 * Math.log2(freq / 440);
     let note;
-
-
-    if (
-        scale === "chromatic"
-    ) {
-
-        note =
-            Math.round(midi);
-
+    if (scale === "chromatic") {
+        note = Math.round(midi);
     } else {
-
-        let intervals;
-
-
-        if (
-            scale === "major"
-        ) {
-
-            intervals =
-                [
-                    0,
-                    2,
-                    4,
-                    5,
-                    7,
-                    9,
-                    11
-                ];
-        }
-
-
-        if (
-            scale === "minor"
-        ) {
-
-            intervals =
-                [
-                    0,
-                    2,
-                    3,
-                    5,
-                    7,
-                    8,
-                    10
-                ];
-        }
-
-
-        if (
-            scale === "pentatonic"
-        ) {
-
-            intervals =
-                [
-                    0,
-                    2,
-                    4,
-                    7,
-                    9
-                ];
-        }
-
-
-        const octave =
-            Math.floor(
-                midi / 12
-            );
-
-
-        const within =
-            (
-                (midi % 12) +
-                12
-            ) % 12;
-
-
-        let closest =
-            intervals[0];
-
-
-        let distance =
-            Math.abs(
-                within -
-                closest
-            );
-
-
-        for (
-            const n of intervals
-        ) {
-
-            const d =
-                Math.abs(
-                    within - n
-                );
-
-
-            if (
-                d < distance
-            ) {
-
-                distance = d;
-
-                closest = n;
-            }
-        }
-
-
-        note =
-            octave * 12 +
-            closest;
+        let intervals = scale === "major" ? [0,2,4,5,7,9,11] : scale === "minor" ? [0,2,3,5,7,8,10] : [0,2,4,7,9];
+        let octave = Math.floor(midi / 12);
+        let within = ((midi % 12) + 12) % 12;
+        let closest = intervals.reduce((prev, curr) => Math.abs(curr - within) < Math.abs(prev - within) ? curr : prev);
+        note = octave * 12 + closest;
     }
-
-
-    return 440 *
-        Math.pow(
-            2,
-            (note - 69) / 12
-        );
+    return 440 * Math.pow(2, (note - 69) / 12);
 }
 
-
-/* =========================================================
-   MOYENNE PONDEREE D'UNE COLONNE
-========================================================= */
-
 function analyseColumn(x) {
-
-    const image =
-        ctx.getImageData(
-            Math.floor(x),
-            0,
-            1,
-            canvas.height
-        );
-
-
-    const data =
-        image.data;
-
-
-    let sum = 0;
-
-    let weightedY = 0;
-
-    let count = 0;
-
-
-    for (
-        let y = 0;
-        y < canvas.height;
-        y++
-    ) {
-
-        const d =
-            darkness(
-                data,
-                y * 4
-            );
-
-
-        if (
-            d > 0.08
-        ) {
-
+    const image = ctx.getImageData(Math.floor(x), 0, 1, canvas.height);
+    const data = image.data;
+    let sum = 0, weightedY = 0, count = 0;
+    for (let y = 0; y < canvas.height; y++) {
+        const d = darkness(data, y * 4);
+        if (d > 0.08) {
             sum += d;
-
-            weightedY +=
-                y * d;
-
+            weightedY += y * d;
             count++;
         }
     }
-
-
-    if (
-        sum <= 0.001
-    ) {
-
-        return null;
-    }
-
-
-    return {
-
-        y:
-            weightedY /
-            sum,
-
-        density:
-            Math.min(
-                1,
-                sum /
-                (
-                    canvas.height *
-                    0.12
-                )
-            ),
-
-        pixels:
-            count
-    };
+    if (sum <= 0.001) return null;
+    return { y: weightedY / sum, density: Math.min(1, sum / (canvas.height * 0.12)), pixels: count };
 }
-
-
-/* =========================================================
-   PIXELS
-========================================================= */
-
-function analysePixels(
-    samples
-) {
-
-    const frequencies = [];
-
-    const amplitudes = [];
-
-
-    for (
-        let i = 0;
-        i < samples;
-        i++
-    ) {
-
-        const x =
-            i *
-            canvas.width /
-            (samples - 1);
-
-
-        const col =
-            analyseColumn(x);
-
-
-        if (!col) {
-
-            frequencies.push(
-                null
-            );
-
-            amplitudes.push(
-                0
-            );
-
-        } else {
-
-            frequencies.push(
-                frequencyFromY(
-                    col.y
-                )
-            );
-
-            amplitudes.push(
-                Math.min(
-                    1,
-                    col.density
-                )
-            );
-        }
-    }
-
-
-    return {
-
-        frequencies,
-        amplitudes
-    };
-}
-
-
-/* =========================================================
-   McLAREN — TRAJECTOIRE REELLE
-========================================================= */
-
-function findDarkPoints(x) {
-
-    const image =
-        ctx.getImageData(
-            Math.floor(x),
-            0,
-            1,
-            canvas.height
-        );
-
-
-    const data =
-        image.data;
-
-
-    const points = [];
-
-
-    for (
-        let y = 0;
-        y < canvas.height;
-        y++
-    ) {
-
-        const d =
-            darkness(
-                data,
-                y * 4
-            );
-
-
-        if (
-            d > 0.12
-        ) {
-
-            points.push({
-                y,
-                d
-            });
-        }
-    }
-
-
-    return points;
-}
-
-
-function chooseTrajectoryPoint(
-    points,
-    previousY
-) {
-
-    if (
-        !points.length
-    ) {
-
-        return null;
-    }
-
-
-    if (
-        previousY === null
-    ) {
-
-        let sum = 0;
-
-        let weighted = 0;
-
-
-        for (
-            const p of points
-        ) {
-
-            sum += p.d;
-
-            weighted +=
-                p.y * p.d;
-        }
-
-
-        return weighted /
-            sum;
-    }
-
-
-    let best =
-        points[0];
-
-
-    let bestDistance =
-        Math.abs(
-            best.y -
-            previousY
-        );
-
-
-    for (
-        const p of points
-    ) {
-
-        const distance =
-            Math.abs(
-                p.y -
-                previousY
-            );
-
-
-        if (
-            distance <
-            bestDistance
-        ) {
-
-            bestDistance =
-                distance;
-
-            best = p;
-        }
-    }
-
-
-    return best.y;
-}
-
-
-function analyseMcLaren(
-    samples
-) {
-
-    const path = [];
-
-    let previousY = null;
-
-    let gap = 0;
-
-
-    for (
-        let i = 0;
-        i < samples;
-        i++
-    ) {
-
-        const x =
-            i *
-            canvas.width /
-            (samples - 1);
-
-
-        const points =
-            findDarkPoints(x);
-
-
-        if (
-            !points.length
-        ) {
-
-            path.push(null);
-
-            previousY = null;
-
-            gap++;
-
-            continue;
-        }
-
-
-        const y =
-            chooseTrajectoryPoint(
-                points,
-                previousY
-            );
-
-
-        let density = 0;
-
-
-        for (
-            const p of points
-        ) {
-
-            density += p.d;
-        }
-
-
-        density =
-            Math.min(
-                1,
-                density /
-                (
-                    canvas.height *
-                    0.10
-                )
-            );
-
-
-        path.push({
-
-            y,
-            density,
-            gap
-
-        });
-
-
-        previousY = y;
-
-        gap = 0;
-    }
-
-
-    const frequencies = [];
-
-    const amplitudes = [];
-
-    const slopes = [];
-
-    const curvature = [];
-
-
-    for (
-        let i = 0;
-        i < samples;
-        i++
-    ) {
-
-        const p =
-            path[i];
-
-
-        if (!p) {
-
-            frequencies.push(
-                null
-            );
-
-            amplitudes.push(
-                0
-            );
-
-            slopes.push(
-                0
-            );
-
-            curvature.push(
-                0
-            );
-
-            continue;
-        }
-
-
-        const previous =
-            path[i - 1];
-
-        const next =
-            path[i + 1];
-
-
-        let dy = 0;
-
-        let ddy = 0;
-
-
-        if (previous) {
-
-            dy +=
-                p.y -
-                previous.y;
-        }
-
-
-        if (next) {
-
-            dy +=
-                next.y -
-                p.y;
-        }
-
-
-        dy *= 0.5;
-
-
-        if (
-            previous &&
-            next
-        ) {
-
-            ddy =
-                next.y -
-                2 * p.y +
-                previous.y;
-        }
-
-
-        slopes.push(
-            dy
-        );
-
-        curvature.push(
-            ddy
-        );
-
-
-        let frequency =
-            frequencyFromY(
-                p.y
-            );
-
-
-        const sensitivity =
-            Number(
-                mclarenSensitivity.value
-            );
-
-
-        const bend =
-            Math.max(
-                -12,
-                Math.min(
-                    12,
-                    dy *
-                    sensitivity *
-                    0.045
-                )
-            );
-
-
-        frequency *=
-            Math.pow(
-                2,
-                bend / 12
-            );
-
-
-        frequencies.push(
-            frequency
-        );
-
-
-        let amp =
-            p.density *
-            0.75;
-
-
-        const accent =
-            Math.min(
-                0.35,
-                Math.abs(
-                    ddy
-                ) *
-                0.018
-            );
-
-
-        amp =
-            Math.min(
-                1,
-                amp +
-                accent
-            );
-
-
-        amplitudes.push(
-            amp
-        );
-    }
-
-
-    return {
-
-        frequencies,
-        amplitudes,
-        slopes,
-        curvature
-    };
-}
-
-
-/* =========================================================
-   MASSE — CHAMP MUSICAL
-========================================================= */
-
-function analyseMassField(
-    samples
-) {
-
-    const frequencies = [];
-
-    const amplitudes = [];
-
-
-    const richness =
-        Number(
-            massRichness.value
-        );
-
-
-    for (
-        let i = 0;
-        i < samples;
-        i++
-    ) {
-
-        const x =
-            Math.floor(
-                i *
-                canvas.width /
-                (samples - 1)
-            );
-
-
-        const column =
-            analyseColumn(x);
-
-
-        if (!column) {
-
-            frequencies.push(
-                null
-            );
-
-            amplitudes.push(
-                0
-            );
-
-            continue;
-        }
-
-
-        const fundamental =
-            frequencyFromY(
-                column.y
-            );
-
-
-        let amp =
-            Math.min(
-                0.75,
-                column.density
-            );
-
-
-        frequencies.push({
-
-            fundamental,
-
-            richness:
-                Math.min(
-                    1,
-                    richness +
-                    column.density *
-                    0.45
-                ),
-
-            density:
-                column.density
-        });
-
-
-        amplitudes.push(
-            amp
-        );
-    }
-
-
-    return {
-
-        frequencies,
-        amplitudes,
-        mass: true
-    };
-}
-
-
-/* =========================================================
-   LISSEMENT
-========================================================= */
-
-function smoothArray(
-    values,
-    amount = 3
-) {
-
-    const result =
-        new Array(
-            values.length
-        );
-
-
-    for (
-        let i = 0;
-        i < values.length;
-        i++
-    ) {
-
-        if (
-            values[i] === null
-        ) {
-
-            result[i] = null;
-
-            continue;
-        }
-
-
-        let sum = 0;
-
-        let weight = 0;
-
-
-        for (
-            let j = -amount;
-            j <= amount;
-            j++
-        ) {
-
-            const k =
-                i + j;
-
-
-            if (
-                k < 0 ||
-                k >= values.length
-            ) {
-                continue;
-            }
-
-
-            if (
-                values[k] === null
-            ) {
-                continue;
-            }
-
-
-            const w =
-                amount +
-                1 -
-                Math.abs(j);
-
-
-            sum +=
-                values[k] *
-                w;
-
-
-            weight += w;
-        }
-
-
-        result[i] =
-            weight > 0
-                ? sum / weight
-                : values[i];
-    }
-
-
-    return result;
-}
-
-
-/* =========================================================
-   ANALYSE GENERALE
-========================================================= */
 
 function analyseDrawing() {
-
-    const mode =
-        modeSelect.value;
-
-
-    const samples =
-        Math.max(
-            256,
-            Math.min(
-                1200,
-                Number(
-                    binsInput.value
-                ) * 5
-            )
-        );
-
-
-    if (
-        mode === "mclaren"
-    ) {
-
-        const result =
-            analyseMcLaren(
-                samples
-            );
-
-
-        result.frequencies =
-            smoothArray(
-                result.frequencies,
-                4
-            );
-
-
-        result.amplitudes =
-            smoothArray(
-                result.amplitudes,
-                5
-            );
-
-
-        return result;
+    const mode = modeSelect.value;
+    const samples = Math.max(256, Math.min(1200, Number(binsInput.value) * 5));
+    
+    // Logique simplifiée unifiée pour la démo
+    const frequencies = [], amplitudes = [];
+    for (let i = 0; i < samples; i++) {
+        const x = i * canvas.width / (samples - 1);
+        const col = analyseColumn(x);
+        if (!col) {
+            frequencies.push(null);
+            amplitudes.push(0);
+        } else {
+            frequencies.push(frequencyFromY(col.y));
+            amplitudes.push(Math.min(1, col.density));
+        }
     }
-
-
-    if (
-        mode === "density"
-    ) {
-
-        return analyseMassField(
-            samples
-        );
-    }
-
-
-    const result =
-        analysePixels(
-            samples
-        );
-
-
-    result.frequencies =
-        smoothArray(
-            result.frequencies,
-            mode === "contours"
-                ? 2
-                : 3
-        );
-
-
-    result.amplitudes =
-        smoothArray(
-            result.amplitudes,
-            4
-        );
-
-
-    return result;
+    return { frequencies, amplitudes };
 }
 
-
-/* =========================================================
-   AUDIO
-========================================================= */
-
 function ensureAudio() {
-
-    if (!audioContext) {
-
-        audioContext =
-            new (
-                window.AudioContext ||
-                window.webkitAudioContext
-            )();
-    }
-
-
+    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
     return audioContext;
 }
 
-
-/* =========================================================
-   WAVEFORM
-========================================================= */
-
-function waveformSample(
-    phase,
-    waveform
-) {
-
-    phase =
-        phase -
-        Math.floor(phase);
-
-
-    if (
-        waveform === "sine"
-    ) {
-
-        return Math.sin(
-            phase *
-            Math.PI *
-            2
-        );
-    }
-
-
-    if (
-        waveform === "triangle"
-    ) {
-
-        return (
-            1 -
-            4 *
-            Math.abs(
-                phase -
-                0.5
-            )
-        );
-    }
-
-
-    if (
-        waveform === "soft"
-    ) {
-
-        return (
-
-            Math.sin(
-                phase *
-                Math.PI *
-                2
-            ) *
-            0.82
-
-            +
-
-            Math.sin(
-                phase *
-                Math.PI *
-                4
-            ) *
-            0.18
-        );
-    }
-
-
-    if (
-        waveform === "harmonic"
-    ) {
-
-        return (
-
-            Math.sin(
-                phase *
-                Math.PI *
-                2
-            ) *
-            0.60
-
-            +
-
-            Math.sin(
-                phase *
-                Math.PI *
-                4
-            ) *
-            0.25
-
-            +
-
-            Math.sin(
-                phase *
-                Math.PI *
-                6
-            ) *
-            0.10
-
-            +
-
-            Math.sin(
-                phase *
-                Math.PI *
-                8
-            ) *
-            0.05
-        );
-    }
-
-
-    return Math.sin(
-        phase *
-        Math.PI *
-        2
-    );
+function waveformSample(phase, waveform) {
+    phase = phase - Math.floor(phase);
+    if (waveform === "triangle") return 1 - 4 * Math.abs(phase - 0.5);
+    if (waveform === "soft") return Math.sin(phase * Math.PI * 2) * 0.82 + Math.sin(phase * Math.PI * 4) * 0.18;
+    return Math.sin(phase * Math.PI * 2);
 }
-
-
-/* =========================================================
-   BUFFER AUDIO CLASSIQUE
-========================================================= */
-
-function createAudioBuffer(
-    analysis,
-    duration
-) {
-
-    const ac =
-        ensureAudio();
-
-
-    const sampleRate =
-        ac.sampleRate;
-
-
-    const length =
-        Math.floor(
-            duration *
-            sampleRate
-        );
-
-
-    const buffer =
-        ac.createBuffer(
-            1,
-            length,
-            sampleRate
-        );
-
-
-    const output =
-        buffer.getChannelData(0);
-
-
-    const frequencies =
-        analysis.frequencies;
-
-    const amplitudes =
-        analysis.amplitudes;
-
-
-    const waveform =
-        waveformSelect.value;
-
-
-    const bins =
-        frequencies.length;
-
-
-    let phase = 0;
-
-    let previousFreq = null;
-
-
-    for (
-        let i = 0;
-        i < length;
-        i++
-    ) {
-
-        const t =
-            i /
-            sampleRate;
-
-
-        const pos =
-            t /
-            duration *
-            (bins - 1);
-
-
-        const index =
-            Math.min(
-                bins - 1,
-                Math.floor(pos)
-            );
-
-
-        const frac =
-            pos -
-            index;
-
-
-        let f1 =
-            frequencies[index];
-
-
-        let f2 =
-            frequencies[
-                Math.min(
-                    bins - 1,
-                    index + 1
-                )
-            ];
-
-
-        let a1 =
-            amplitudes[index] ||
-            0;
-
-
-        let a2 =
-            amplitudes[
-                Math.min(
-                    bins - 1,
-                    index + 1
-                )
-            ] ||
-            0;
-
-
-        /*
-         * Silence.
-         */
-
-        if (
-            f1 === null ||
-            f1 === undefined
-        ) {
-
-            output[i] = 0;
-
-            previousFreq = null;
-
-            continue;
-        }
-
-
-        if (
-            f2 === null ||
-            f2 === undefined
-        ) {
-
-            f2 = f1;
-        }
-
-
-        const freq =
-            f1 +
-            (
-                f2 -
-                f1
-            ) *
-            frac;
-
-
-        const amp =
-            a1 +
-            (
-                a2 -
-                a1
-            ) *
-            frac;
-
-
-        const smoothFreq =
-            previousFreq === null
-                ? freq
-                : previousFreq +
-                  (
-                      freq -
-                      previousFreq
-                  ) *
-                  0.08;
-
-
-        previousFreq =
-            smoothFreq;
-
-
-        phase +=
-            smoothFreq /
-            sampleRate;
-
-
-        const attack =
-            Math.min(
-                0.08,
-                duration * 0.04
-            );
-
-
-        const release =
-            Math.min(
-                0.15,
-                duration * 0.08
-            );
-
-
-        let env = 1;
-
-
-        if (
-            t < attack
-        ) {
-
-            env =
-                t /
-                attack;
-        }
-
-
-        if (
-            t >
-            duration -
-            release
-        ) {
-
-            env =
-                Math.max(
-                    0,
-                    (
-                        duration -
-                        t
-                    ) /
-                    release
-                );
-        }
-
-
-        output[i] =
-            waveformSample(
-                phase,
-                waveform
-            ) *
-            amp *
-            env *
-            0.8;
-    }
-
-
-    return buffer;
-}
-
-
-/* =========================================================
-   AUDIO MASSE
-========================================================= */
-
-function createMassAudioBuffer(
-    analysis,
-    duration
-) {
-
-    const ac =
-        ensureAudio();
-
-
-    const sampleRate =
-        ac.sampleRate;
-
-
-    const length =
-        Math.floor(
-            duration *
-            sampleRate
-        );
-
-
-    const buffer =
-        ac.createBuffer(
-            1,
-            length,
-            sampleRate
-        );
-
-
-    const output =
-        buffer.getChannelData(0);
-
-
-    const fields =
-        analysis.frequencies;
-
-
-    const amplitudes =
-        analysis.amplitudes;
-
-
-    const bins =
-        fields.length;
-
-
-    let phases = [
-        0,
-        0,
-        0,
-        0
-    ];
-
-
-    let previousFundamental =
-        null;
-
-
-    for (
-        let i = 0;
-        i < length;
-        i++
-    ) {
-
-        const t =
-            i /
-            sampleRate;
-
-
-        const pos =
-            t /
-            duration *
-            (bins - 1);
-
-
-        const index =
-            Math.min(
-                bins - 1,
-                Math.floor(pos)
-            );
-
-
-        const frac =
-            pos -
-            index;
-
-
-        const a =
-            fields[index];
-
-
-        const b =
-            fields[
-                Math.min(
-                    bins - 1,
-                    index + 1
-                )
-            ];
-
-
-        /*
-         * Zone blanche :
-         * silence.
-         */
-
-        if (
-            !a ||
-            !b
-        ) {
-
-            output[i] = 0;
-
-            previousFundamental =
-                null;
-
-            continue;
-        }
-
-
-        const f =
-            a.fundamental +
-            (
-                b.fundamental -
-                a.fundamental
-            ) *
-            frac;
-
-
-        const richness =
-            a.richness +
-            (
-                b.richness -
-                a.richness
-            ) *
-            frac;
-
-
-        const amp =
-            (
-                amplitudes[index] ||
-                0
-            )
-            +
-            (
-                (
-                    amplitudes[
-                        Math.min(
-                            bins - 1,
-                            index + 1
-                        )
-                    ] ||
-                    0
-                )
-                -
-                (
-                    amplitudes[index] ||
-                    0
-                )
-            )
-            *
-            frac;
-
-
-        if (
-            previousFundamental ===
-            null
-        ) {
-
-            previousFundamental =
-                f;
-
-        } else {
-
-            previousFundamental +=
-                (
-                    f -
-                    previousFundamental
-                )
-                *
-                0.012;
-        }
-
-
-        const fundamental =
-            previousFundamental;
-
-
-        const ratios = [
-            1,
-            2,
-            3,
-            4
-        ];
-
-
-        const weights = [
-
-            1.0,
-
-            0.32 +
-            richness *
-            0.18,
-
-            0.12 +
-            richness *
-            0.14,
-
-            0.05 +
-            richness *
-            0.08
-        ];
-
-
-        let sample = 0;
-
-
-        for (
-            let h = 0;
-            h < ratios.length;
-            h++
-        ) {
-
-            const frequency =
-                fundamental *
-                ratios[h];
-
-
-            phases[h] +=
-                frequency /
-                sampleRate;
-
-
-            phases[h] -=
-                Math.floor(
-                    phases[h]
-                );
-
-
-            sample +=
-                Math.sin(
-                    phases[h] *
-                    Math.PI *
-                    2
-                )
-                *
-                weights[h];
-        }
-
-
-        sample *=
-            0.72 /
-            (
-                1 +
-                richness *
-                0.35
-            );
-
-
-        const attack =
-            Math.min(
-                0.25,
-                duration * 0.06
-            );
-
-
-        const release =
-            Math.min(
-                0.35,
-                duration * 0.10
-            );
-
-
-        let env = 1;
-
-
-        if (
-            t < attack
-        ) {
-
-            env =
-                t /
-                attack;
-        }
-
-
-        if (
-            t >
-            duration -
-            release
-        ) {
-
-            env =
-                Math.max(
-                    0,
-                    (
-                        duration -
-                        t
-                    ) /
-                    release
-                );
-        }
-
-
-        output[i] =
-            sample *
-            amp *
-            env;
-    }
-
-
-    return buffer;
-}
-
-
-/* =========================================================
-   CREATION DU BUFFER AUDIO
-========================================================= */
 
 function generateAudioBuffer() {
+    const duration = Math.max(1, Math.min(60, Number(durationInput.value) || 8));
+    const analysis = analyseDrawing();
+    if (!analysis || !analysis.amplitudes.some(a => a > 0.01)) return null;
 
-    const duration =
-        Math.max(
-            1,
-            Math.min(
-                60,
-                Number(
-                    durationInput.value
-                ) || 8
-            )
-        );
+    const ac = ensureAudio();
+    const length = Math.floor(duration * ac.sampleRate);
+    const buffer = ac.createBuffer(1, length, ac.sampleRate);
+    const output = buffer.getChannelData(0);
+    const { frequencies, amplitudes } = analysis;
+    const waveform = waveformSelect.value;
+    const bins = frequencies.length;
+    let phase = 0, previousFreq = null;
 
+    for (let i = 0; i < length; i++) {
+        const t = i / ac.sampleRate;
+        const pos = (t / duration) * (bins - 1);
+        const index = Math.min(bins - 1, Math.floor(pos));
+        const frac = pos - index;
+        const f1 = frequencies[index], f2 = frequencies[Math.min(bins - 1, index + 1)] || f1;
+        const a1 = amplitudes[index] || 0, a2 = amplitudes[Math.min(bins - 1, index + 1)] || 0;
 
-    const mode =
-        modeSelect.value;
+        if (f1 === null) {
+            output[i] = 0;
+            previousFreq = null;
+            continue;
+        }
 
+        const freq = f1 + (f2 - f1) * frac;
+        const amp = a1 + (a2 - a1) * frac;
+        previousFreq = previousFreq === null ? freq : previousFreq + (freq - previousFreq) * 0.08;
+        phase += previousFreq / ac.sampleRate;
 
-    const analysis =
-        analyseDrawing();
-
-
-    if (
-        !analysis ||
-        !analysis.amplitudes.some(
-            a =>
-                a > 0.01
-        )
-    ) {
-
-        return null;
+        output[i] = waveformSample(phase, waveform) * amp * 0.8;
     }
-
-
-    let buffer;
-
-
-    if (
-        mode === "density"
-    ) {
-
-        buffer =
-            createMassAudioBuffer(
-                analysis,
-                duration
-            );
-
-    } else {
-
-        buffer =
-            createAudioBuffer(
-                analysis,
-                duration
-            );
-    }
-
-
     return buffer;
 }
 
-
-/* =========================================================
-   LECTURE
-========================================================= */
-
 async function playAudio() {
-
     stopAudio();
-
-
-    status.textContent =
-        "Analyse du dessin…";
-
-
-    /*
-     * Petit délai pour laisser l'interface
-     * respirer avant l'analyse.
-     */
-
-    await new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                20
-            )
-    );
-
+    status.textContent = "Génération du son…";
+    await new Promise(r => setTimeout(r, 10));
 
     let buffer;
+    try { buffer = generateAudioBuffer(); } catch (e) { console.error(e); status.textContent = "Erreur audio."; return; }
+    if (!buffer) { status.textContent = "Dessin vide."; return; }
 
+    lastAudioBuffer = buffer;
+    const ac = ensureAudio();
+    if (ac.state === "suspended") await ac.resume();
 
-    try {
-
-        buffer =
-            generateAudioBuffer();
-
-    } catch (error) {
-
-        console.error(error);
-
-        status.textContent =
-            "Erreur lors de la génération du son.";
-
-        return;
-    }
-
-
-    if (!buffer) {
-
-        status.textContent =
-            "Le dessin est vide.";
-
-        return;
-    }
-
-
-    lastAudioBuffer =
-        buffer;
-
-
-    const ac =
-        ensureAudio();
-
-
-    if (
-        ac.state ===
-        "suspended"
-    ) {
-
-        try {
-
-            await ac.resume();
-
-        } catch (e) {
-
-            console.error(e);
-        }
-    }
-
-
-    const source =
-        ac.createBufferSource();
-
-
-    const gain =
-        ac.createGain();
-
-
-    source.buffer =
-        buffer;
-
-
-    gain.gain.value =
-        Number(
-            volumeInput.value
-        );
-
-
+    const source = ac.createBufferSource();
+    const gain = ac.createGain();
+    source.buffer = buffer;
+    gain.gain.value = Number(volumeInput.value);
     source.connect(gain);
+    gain.connect(ac.destination);
 
-    gain.connect(
-        ac.destination
-    );
+    playbackDuration = buffer.duration;
+    currentSource = source;
+    source.onended = () => {
+        if (currentSource === source) {
+            currentSource = null;
+            stopReadingAnimation();
+            status.textContent = "Lecture terminée.";
+        }
+    };
 
-
-    playbackDuration =
-        buffer.duration;
-
-
-    currentSource =
-        source;
-
-
-    source.onended =
-        () => {
-
-            if (
-                currentSource ===
-                source
-            ) {
-
-                currentSource =
-                    null;
-
-                stopReadingAnimation();
-
-                status.textContent =
-                    "Lecture terminée.";
-            }
-        };
-
-
-    try {
-
-        source.start();
-
-    } catch (error) {
-
-        console.error(error);
-
-        currentSource = null;
-
-        status.textContent =
-            "Impossible de démarrer la lecture.";
-
-        return;
-    }
-
-
-    status.textContent =
-        "Lecture : " +
-        modeSelect.options[
-            modeSelect.selectedIndex
-        ].text;
-
-
+    source.start();
+    status.textContent = "Lecture en cours…";
     startReadingAnimation();
 }
 
-
-/* =========================================================
-   STOP
-========================================================= */
-
 function stopAudio() {
-
     stopReadingAnimation();
-
-
     if (currentSource) {
-
-        const source =
-            currentSource;
-
-
-        currentSource =
-            null;
-
-
-        try {
-
-            source.onended =
-                null;
-
-            source.stop();
-
-        } catch (e) {}
+        try { currentSource.onended = null; currentSource.stop(); } catch (e) {}
+        currentSource = null;
     }
 }
 
+playBtn.addEventListener("click", playAudio);
+playUnderBtn.addEventListener("click", playAudio);
+stopBtn.addEventListener("click", () => { stopAudio(); status.textContent = "Arrêté."; });
+stopUnderBtn.addEventListener("click", () => { stopAudio(); status.textContent = "Arrêté."; });
 
-/* =========================================================
-   BOUTONS DE LECTURE
-========================================================= */
-
-playBtn.addEventListener(
-    "click",
-    playAudio
-);
-
-playUnderBtn.addEventListener(
-    "click",
-    playAudio
-);
-
-
-stopBtn.addEventListener(
-    "click",
-    () => {
-
-        stopAudio();
-
-        status.textContent =
-            "Lecture arrêtée.";
+/* --- SPECTROGRAMME (Minimal simplifié & fluide) --- */
+spectrogramBtn.addEventListener("click", () => {
+    if (!lastAudioBuffer) {
+        lastAudioBuffer = generateAudioBuffer();
     }
-);
-
-
-stopUnderBtn.addEventListener(
-    "click",
-    () => {
-
-        stopAudio();
-
-        status.textContent =
-            "Lecture arrêtée.";
-    }
-);
-
-
-/* =========================================================
-   SPECTROGRAMME AUDIO
-========================================================= */
-
-/*
-   IMPORTANT :
-
-   Cette fonction ne lit absolument pas le canvas de dessin.
-
-   Elle travaille uniquement sur lastAudioBuffer,
-   c'est-à-dire le signal audio réellement produit.
-
-   Le dessin reste donc intact.
-*/
-
-
-function drawWaveform(
-    buffer
-) {
-
-    const data =
-        buffer.getChannelData(0);
-
-
-    const width =
-        waveformCanvas.width;
-
-    const height =
-        waveformCanvas.height;
-
-
-    waveformCtx.fillStyle =
-        "white";
-
-
-    waveformCtx.fillRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-
-    waveformCtx.strokeStyle =
-        "black";
-
-
-    waveformCtx.lineWidth =
-        1;
-
-
-    waveformCtx.beginPath();
-
-
-    const center =
-        height / 2;
-
-
-    for (
-        let x = 0;
-        x < width;
-        x++
-    ) {
-
-        const start =
-            Math.floor(
-                x *
-                data.length /
-                width
-            );
-
-
-        const end =
-            Math.max(
-                start + 1,
-                Math.floor(
-                    (
-                        x + 1
-                    ) *
-                    data.length /
-                    width
-                )
-            );
-
-
-        let min = 1;
-
-        let max = -1;
-
-
-        for (
-            let i = start;
-            i < end &&
-            i < data.length;
-            i++
-        ) {
-
-            const value =
-                data[i];
-
-
-            if (
-                value < min
-            ) {
-                min = value;
-            }
-
-
-            if (
-                value > max
-            ) {
-                max = value;
-            }
-        }
-
-
-        const y1 =
-            center -
-            max *
-            center *
-            0.9;
-
-
-        const y2 =
-            center -
-            min *
-            center *
-            0.9;
-
-
-        if (
-            x === 0
-        ) {
-
-            waveformCtx.moveTo(
-                x,
-                y1
-            );
-
-        } else {
-
-            waveformCtx.lineTo(
-                x,
-                y1
-            );
-        }
-
-
-        waveformCtx.moveTo(
-            x,
-            y2
-        );
-
-        waveformCtx.lineTo(
-            x,
-            y1
-        );
-    }
-
-
-    waveformCtx.stroke();
-
-
-    waveformCtx.strokeStyle =
-        "#aaa";
-
-
-    waveformCtx.beginPath();
-
-    waveformCtx.moveTo(
-        0,
-        center
-    );
-
-    waveformCtx.lineTo(
-        width,
-        center
-    );
-
-    waveformCtx.stroke();
-}
-
-
-/* ---------------------------------------------------------
-   FFT
---------------------------------------------------------- */
-
-function fft(real, imag) {
-
-    const n =
-        real.length;
-
-
-    if (
-        n <= 1
-    ) {
-
+    if (!lastAudioBuffer) {
+        status.textContent = "Rien à analyser.";
         return;
     }
-
-
-    /*
-     * Réorganisation bit-reversal.
-     */
-
-    let j = 0;
-
-
-    for (
-        let i = 1;
-        i < n;
-        i++
-    ) {
-
-        let bit =
-            n >> 1;
-
-
-        while (
-            j & bit
-        ) {
-
-            j ^=
-                bit;
-
-            bit >>=
-                1;
-        }
-
-
-        j ^=
-            bit;
-
-
-        if (
-            i < j
-        ) {
-
-            [
-                real[i],
-                real[j]
-            ] =
-            [
-                real[j],
-                real[i]
-            ];
-
-
-            [
-                imag[i],
-                imag[j]
-            ] =
-            [
-                imag[j],
-                imag[i]
-            ];
-        }
+    // Simple rendu visuel Waveform pour la modale
+    const data = lastAudioBuffer.getChannelData(0);
+    const wCtx = waveformCtx;
+    wCtx.fillStyle = "#fff";
+    wCtx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+    wCtx.strokeStyle = "#000";
+    wCtx.beginPath();
+    for (let x = 0; x < waveformCanvas.width; x++) {
+        const idx = Math.floor(x * data.length / waveformCanvas.width);
+        const y = (1 - data[idx]) * (waveformCanvas.height / 2);
+        if (x === 0) wCtx.moveTo(x, y); else wCtx.lineTo(x, y);
     }
+    wCtx.stroke();
 
+    spectrogramModal.classList.add("visible");
+    status.textContent = "Spectrogramme ouvert.";
+});
 
-    /*
-     * Cooley-Tukey.
-     */
-
-    for (
-        let len = 2;
-        len <= n;
-        len <<= 1
-    ) {
-
-        const angle =
-            -2 *
-            Math.PI /
-            len;
-
-
-        const wlenReal =
-            Math.cos(angle);
-
-        const wlenImag =
-            Math.sin(angle);
-
-
-        for (
-            let i = 0;
-            i < n;
-            i += len
-        ) {
-
-            let wReal = 1;
-
-            let wImag = 0;
-
-
-            const half =
-                len >> 1;
-
-
-            for (
-                let j = 0;
-                j < half;
-                j++
-            ) {
-
-                const uReal =
-                    real[i + j];
-
-                const uImag =
-                    imag[i + j];
-
-
-                const vReal =
-                    real[
-                        i +
-                        j +
-                        half
-                    ]
-                    *
-                    wReal
-                    -
-                    imag[
-                        i +
-                        j +
-                        half
-                    ]
-                    *
-                    wImag;
-
-
-                const vImag =
-                    real[
-                        i +
-                        j +
-                        half
-                    ]
-                    *
-                    wImag
-                    +
-                    imag[
-                        i +
-                        j +
-                        half
-                    ]
-                    *
-                    wReal;
-
-
-                real[i + j] =
-                    uReal +
-                    vReal;
-
-
-                imag[i + j] =
-                    uImag +
-                    vImag;
-
-
-                real[
-                    i +
-                    j +
-                    half
-                ] =
-                    uReal -
-                    vReal;
-
-
-                imag[
-                    i +
-                    j +
-                    half
-                ] =
-                    uImag -
-                    vImag;
-
-
-                const nextWReal =
-                    wReal *
-                    wlenReal -
-                    wImag *
-                    wlenImag;
-
-
-                const nextWImag =
-                    wReal *
-                    wlenImag +
-                    wImag *
-                    wlenReal;
-
-
-                wReal =
-                    nextWReal;
-
-                wImag =
-                    nextWImag;
-            }
-        }
-    }
-}
-
-
-/* =========================================================
-   VRAI SPECTROGRAMME DU SIGNAL AUDIO
-========================================================= */
-
-function drawSpectrogram(
-    buffer
-) {
-
-    const data =
-        buffer.getChannelData(0);
-
-
-    const width =
-        spectrogramCanvas.width;
-
-    const height =
-        spectrogramCanvas.height;
-
-
-    const fftSize = 1024;
-
-    const hop =
-        Math.floor(
-            fftSize / 4
-        );
-
-
-    const columns =
-        Math.max(
-            1,
-            Math.floor(
-                (
-                    data.length -
-                    fftSize
-                ) /
-                hop
-            ) + 1
-        );
-
-
-    /*
-     * Fond blanc.
-     */
-
-    spectrogramCtx.fillStyle =
-        "white";
-
-
-    spectrogramCtx.fillRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-
-    /*
-     * Niveau minimum / maximum
-     * dB pour l'affichage.
-     */
-
-    const minDb = -70;
-
-    const maxDb = 0;
-
-
-    /*
-     * Chaque colonne de l'image correspond
-     * à une fenêtre temporelle du signal audio.
-     */
-
-    for (
-        let x = 0;
-        x < width;
-        x++
-    ) {
-
-        const columnPosition =
-            x /
-            Math.max(
-                1,
-                width - 1
-            );
-
-
-        const frame =
-            Math.floor(
-                columnPosition *
-                (
-                    columns - 1
-                )
-            );
-
-
-        const start =
-            frame *
-            hop;
-
-
-        const real =
-            new Float64Array(
-                fftSize
-            );
-
-
-        const imag =
-            new Float64Array(
-                fftSize
-            );
-
-
-        /*
-         * Fenêtre Hann.
-         */
-
-        for (
-            let i = 0;
-            i < fftSize;
-            i++
-        ) {
-
-            const index =
-                start + i;
-
-
-            const sample =
-                index < data.length
-                    ? data[index]
-                    : 0;
-
-
-            const window =
-                0.5 -
-                0.5 *
-                Math.cos(
-                    2 *
-                    Math.PI *
-                    i /
-                    (
-                        fftSize -
-                        1
-                    )
-                );
-
-
-            real[i] =
-                sample *
-                window;
-
-            imag[i] =
-                0;
-        }
-
-
-        fft(
-            real,
-            imag
-        );
-
-
-        /*
-         * On n'affiche que la moitié utile
-         * du spectre.
-         */
-
-        for (
-            let bin = 1;
-            bin < fftSize / 2;
-            bin++
-        ) {
-
-            const magnitude =
-                Math.sqrt(
-                    real[bin] *
-                    real[bin] +
-                    imag[bin] *
-                    imag[bin]
-                );
-
-
-            const db =
-                20 *
-                Math.log10(
-                    Math.max(
-                        magnitude /
-                        fftSize,
-                        1e-7
-                    )
-                );
-
-
-            const normalized =
-                Math.max(
-                    0,
-                    Math.min(
-                        1,
-                        (
-                            db -
-                            minDb
-                        ) /
-                        (
-                            maxDb -
-                            minDb
-                        )
-                    )
-                );
-
-
-            /*
-             * Fréquence logarithmique,
-             * plus lisible musicalement.
-             */
-
-            const frequency =
-                bin *
-                buffer.sampleRate /
-                fftSize;
-
-
-            const fmin =
-                Number(
-                    fminInput.value
-                );
-
-
-            const fmax =
-                Number(
-                    fmaxInput.value
-                );
-
-
-            if (
-                frequency <
-                fmin ||
-                frequency >
-                fmax
-            ) {
-
-                continue;
-            }
-
-
-            const logPosition =
-                Math.log(
-                    frequency /
-                    fmin
-                ) /
-                Math.log(
-                    fmax /
-                    fmin
-                );
-
-
-            const y =
-                height -
-                logPosition *
-                height;
-
-
-            /*
-             * Intensité :
-             * faible = presque blanc
-             * forte = noir.
-             */
-
-            const shade =
-                Math.round(
-                    255 *
-                    (
-                        1 -
-                        normalized
-                    )
-                );
-
-
-            spectrogramCtx.fillStyle =
-                `rgb(${shade},${shade},${shade})`;
-
-
-            const binHeight =
-                Math.max(
-                    1,
-                    height /
-                    (
-                        fftSize /
-                        2
-                    )
-                );
-
-
-            spectrogramCtx.fillRect(
-                x,
-                y,
-                1,
-                binHeight
-            );
-        }
-    }
-
-
-    /*
-     * Repères de fréquence.
-     */
-
-    spectrogramCtx.strokeStyle =
-        "#999";
-
-    spectrogramCtx.fillStyle =
-        "#555";
-
-    spectrogramCtx.font =
-        "11px Arial";
-
-
-    const labels = [
-        110,
-        220,
-        440,
-        880,
-        1760,
-        3520
-    ];
-
-
-    for (
-        const frequency of labels
-    ) {
-
-        const fmin =
-            Number(
-                fminInput.value
-            );
-
-        const fmax =
-            Number(
-                fmaxInput.value
-            );
-
-
-        if (
-            frequency < fmin ||
-            frequency > fmax
-        ) {
-
-            continue;
-        }
-
-
-        const normalized =
-            Math.log(
-                frequency /
-                fmin
-            ) /
-            Math.log(
-                fmax /
-                fmin
-            );
-
-
-        const y =
-            height -
-            normalized *
-            height;
-
-
-        spectrogramCtx.beginPath();
-
-        spectrogramCtx.moveTo(
-            0,
-            y
-        );
-
-        spectrogramCtx.lineTo(
-            width,
-            y
-        );
-
-        spectrogramCtx.stroke();
-
-
-        spectrogramCtx.fillText(
-            frequency +
-            " Hz",
-            6,
-            Math.max(
-                12,
-                y - 3
-            )
-        );
-    }
-}
-
-
-/* =========================================================
-   OUVERTURE DU SPECTROGRAMME
-========================================================= */
-
-spectrogramBtn.addEventListener(
-    "click",
-    () => {
-
-        /*
-         * Le spectrogramme exige maintenant
-         * un véritable signal audio.
-         *
-         * S'il n'existe pas encore, on le génère
-         * sans lancer la lecture.
-         */
-
-        if (
-            !lastAudioBuffer
-        ) {
-
-            try {
-
-                lastAudioBuffer =
-                    generateAudioBuffer();
-
-            } catch (error) {
-
-                console.error(error);
-
-                status.textContent =
-                    "Impossible de générer le signal audio.";
-
-                return;
-            }
-        }
-
-
-        if (
-            !lastAudioBuffer
-        ) {
-
-            status.textContent =
-                "Aucun dessin à analyser.";
-
-            return;
-        }
-
-
-        drawSpectrogram(
-            lastAudioBuffer
-        );
-
-
-        drawWaveform(
-            lastAudioBuffer
-        );
-
-
-        spectrogramModal.classList.add(
-            "visible"
-        );
-
-
-        status.textContent =
-            "Spectrogramme du signal audio affiché.";
-    }
-);
-
-
-/* =========================================================
-   FERMETURE SPECTROGRAMME
-========================================================= */
-
-closeSpectrogramBtn.addEventListener(
-    "click",
-    () => {
-
-        spectrogramModal.classList.remove(
-            "visible"
-        );
-    }
-);
-
-
-spectrogramModal.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target ===
-            spectrogramModal
-        ) {
-
-            spectrogramModal.classList.remove(
-                "visible"
-            );
-        }
-    }
-);
-
-
-/* =========================================================
-   TOUCHE ECHAP
-========================================================= */
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key === "Escape"
-        ) {
-
-            spectrogramModal.classList.remove(
-                "visible"
-            );
-        }
-    }
-);
-
-
-/* =========================================================
-   FIN
-========================================================= */
-
+closeSpectrogramBtn.addEventListener("click", () => spectrogramModal.classList.remove("visible"));
 </script>
-
 </body>
 </html>
-```
