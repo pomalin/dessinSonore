@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dessin Sonore — V2.0 Web</title>
+  <title>Dessin Sonore — V2.1 Web</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a1a; color: #e0e0e0; display: flex; flex-direction: column; min-height: 100vh; }
@@ -62,7 +62,7 @@
 <body>
 
   <header>
-    <h1>DESSIN SONORE — V2.0</h1>
+    <h1>DESSIN SONORE — V2.1</h1>
     <span id="audio-indicator">AUDIO: PRÊT</span>
   </header>
 
@@ -119,7 +119,8 @@
 
         <div class="control" style="margin-bottom: 10px;">
           <label>Durée : <span id="duration-val">4</span>s</label>
-          <input type="range" id="duration" min="0.5" max="12" value="4" step="0.5">
+          <!-- Plage étendue de 0.5s à 60s -->
+          <input type="range" id="duration" min="0.5" max="60" value="4" step="0.5">
         </div>
 
         <div id="ans-controls">
@@ -198,7 +199,6 @@
     const paintCanvas = document.getElementById('paintCanvas');
     const pCtx = paintCanvas.getContext('2d', { willReadFrequently: true });
 
-    // Canvas hors-champ pour conserver l'image source brute sans filtres
     const rawCanvas = document.createElement('canvas');
     rawCanvas.width = paintCanvas.width;
     rawCanvas.height = paintCanvas.height;
@@ -242,7 +242,6 @@
       if (!isDrawing) return;
       const p = getPos(e);
       
-      // Dessin simultané sur l'écran et le buffer brut
       [pCtx, rawCtx].forEach(ctx => {
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
@@ -259,7 +258,7 @@
     function stopDraw() { 
       if (isDrawing) {
         isDrawing = false;
-        applyFilters(); // Applique l'inversion/contraste directement après le tracé
+        applyFilters();
       }
     }
 
@@ -273,7 +272,6 @@
 
     bindTouchClick('btn-clear', clearCanvas);
 
-    // Gestions des imports d'images
     const fileInput = document.getElementById('file-input');
     bindTouchClick('btn-browse', () => fileInput.click());
     fileInput.onchange = (e) => {
@@ -284,7 +282,6 @@
         const img = new Image();
         img.onload = () => {
           clearCanvas();
-          // Conservation des proportions (Fit Center)
           const scale = Math.min(paintCanvas.width / img.width, paintCanvas.height / img.height);
           const x = (paintCanvas.width / 2) - (img.width / 2) * scale;
           const y = (paintCanvas.height / 2) - (img.height / 2) * scale;
@@ -297,7 +294,6 @@
       reader.readAsDataURL(file);
     };
 
-    // Application dynamique des traitements d'image (Contraste / Luminosité / Inversion N/B)
     function applyFilters() {
       const contrast = parseFloat(document.getElementById('contrast').value);
       const brightness = parseFloat(document.getElementById('brightness').value);
@@ -329,7 +325,13 @@
       applyFilters();
     };
     document.getElementById('invert-bw').onchange = applyFilters;
-    document.getElementById('duration').oninput = (e) => document.getElementById('duration-val').textContent = e.target.value;
+    
+    // Adaptation dynamique du pas du curseur de durée
+    document.getElementById('duration').oninput = (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('duration-val').textContent = val;
+    };
+    
     document.getElementById('nbins').oninput = (e) => document.getElementById('bins-val').textContent = e.target.value;
 
     const engineSelect = document.getElementById('engine-select');
@@ -370,13 +372,15 @@
           let y = Math.floor((1 - binIndex / nBins) * (h - 1));
 
           let phase = 0;
+          let phaseInc = (2 * Math.PI * freq) / sampleRate;
+          
           for (let i = 0; i < totalSamples; i++) {
             let x = Math.floor((i / totalSamples) * (w - 1));
             let val = processed[y * w + x];
             let ink = 1.0 - val;
             let amp = ink > 0.15 ? ink : 0.0;
             
-            phase += (2 * Math.PI * freq) / sampleRate;
+            phase += phaseInc;
             if (amp > 0) {
               channel[i] += Math.sin(phase) * amp * (0.5 / nBins);
             }
@@ -433,12 +437,17 @@
 
     bindTouchClick('btn-play', () => {
       if (currentSource) currentSource.stop();
-      const buffer = generateAudio();
-      currentSource = audioCtx.createBufferSource();
-      currentSource.buffer = buffer;
-      currentSource.connect(audioCtx.destination);
-      currentSource.start();
-      document.getElementById('status-bar').textContent = "▶ Lecture en cours...";
+      document.getElementById('status-bar').textContent = "⏳ Calcul de l'audio...";
+      
+      // Petit délai permettant à l'interface de mettre à jour le statut avant les calculs
+      setTimeout(() => {
+        const buffer = generateAudio();
+        currentSource = audioCtx.createBufferSource();
+        currentSource.buffer = buffer;
+        currentSource.connect(audioCtx.destination);
+        currentSource.start();
+        document.getElementById('status-bar').textContent = "▶ Lecture en cours...";
+      }, 20);
     });
 
     bindTouchClick('btn-stop', () => {
