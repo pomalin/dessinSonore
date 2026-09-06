@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
+
+<title>Dessin Sonore — V3.3</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #111;
+    color: #eee;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+}
+
+body {
+    overscroll-behavior: none;
+}
+
+header {
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 18px;
+
+    background: #181818;
+
+    border-bottom:
+        1px solid #333;
+}
+
+header h1 {
+    margin: 0;
+
+    font-size: 20px;
+    font-weight: 500;
+
+    letter-spacing: .04em;
+}
+
+header span {
+    margin-left: 12px;
+
+    color: #888;
+
+    font-size: 12px;
+}
+
+.app {
+    height:
+        calc(100vh - 58px);
+
+    display: flex;
+    flex-direction: column;
+}
+
+.workspace {
+    flex: 1;
+
+    min-height: 0;
+
+    display: flex;
+
+    gap: 12px;
+
+    padding: 12px;
+}
+
+.canvas-wrapper {
+    position: relative;
+
+    flex: 1;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    background: #202020;
+
+    border:
+        1px solid #363636;
+
+    border-radius: 8px;
+
+    touch-action: none;
+    -ms-touch-action: none;
+}
+
+#paintCanvas {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    background: white;
+
+    cursor: crosshair;
+
+    touch-action: none;
+    -ms-touch-action: none;
+
+    user-select: none;
+    -webkit-user-select: none;
+
+    -webkit-touch-callout: none;
+
+    -webkit-tap-highlight-color:
+        transparent;
+
+    z-index: 2;
+}
+
+.sidebar {
+
+    width: 310px;
+
+    flex-shrink: 0;
+
+    overflow-y: auto;
+
+    padding: 14px;
+
+    background: #181818;
+
+    border:
+        1px solid #333;
+
+    border-radius: 8px;
+}
+
+.section {
+    margin-bottom: 18px;
+}
+
+.section-title {
+
+    margin-bottom: 10px;
+
+    color: #888;
+
+    font-size: 11px;
+
+    text-transform: uppercase;
+
+    letter-spacing: .12em;
+}
+
+label {
+
+    display: block;
+
+    margin: 9px 0 4px;
+
+    color: #aaa;
+
+    font-size: 12px;
+}
+
+select,
+input[type="number"] {
+
+    width: 100%;
+
+    height: 34px;
+
+    padding: 0 8px;
+
+    background: #252525;
+
+    color: #eee;
+
+    border:
+        1px solid #444;
+
+    border-radius: 5px;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+input[type="range"] {
+    accent-color: #ddd;
+}
+
+.value {
+    float: right;
+
+    color: #bbb;
+}
+
+.buttons {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 7px;
+}
+
+button {
+
+    min-height: 38px;
+
+    border:
+        1px solid #444;
+
+    border-radius: 5px;
+
+    background: #292929;
+
+    color: #eee;
+
+    cursor: pointer;
+
+    font-size: 12px;
+}
+
+button:hover {
+    background: #353535;
+}
+
+button:active {
+    background: #444;
+}
+
+button.primary {
+
+    background: #ddd;
+
+    color: #111;
+
+    border-color: #ddd;
+}
+
+button.primary:hover {
+    background: white;
+}
+
+button.danger {
+    color: #ffb0b0;
+}
+
+.file-label {
+
+    display: block;
+
+    padding: 10px;
+
+    text-align: center;
+
+    border:
+        1px dashed #555;
+
+    border-radius: 5px;
+
+    color: #bbb;
+
+    font-size: 12px;
+
+    cursor: pointer;
+}
+
+.file-label:hover {
+
+    border-color: #888;
+
+    color: white;
+}
+
+#imageInput {
+    display: none;
+}
+
+.statusbar {
+
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 0 14px;
+
+    background: #181818;
+
+    border-top:
+        1px solid #333;
+
+    color: #777;
+
+    font-size: 11px;
+}
+
+.statusbar strong {
+
+    color: #aaa;
+
+    font-weight: normal;
+}
+
+.modal {
+
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        rgba(0,0,0,.82);
+
+    z-index: 100;
+}
+
+.modal.visible {
+    display: flex;
+}
+
+.modal-content {
+
+    width:
+        min(900px,94vw);
+
+    max-height: 92vh;
+
+    padding: 16px;
+
+    background: #181818;
+
+    border:
+        1px solid #444;
+
+    border-radius: 8px;
+
+    overflow: auto;
+}
+
+.modal-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 12px;
+}
+
+.modal-header h2 {
+
+    margin: 0;
+
+    font-size: 15px;
+
+    font-weight: normal;
+}
+
+#spectrogramCanvas {
+
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+    background: black;
+}
+
+@media (max-width:800px) {
+
+    header {
+        height: 50px;
+        padding: 0 12px;
+    }
+
+    header h1 {
+        font-size: 17px;
+    }
+
+    header span {
+        font-size: 10px;
+    }
+
+    .app {
+        height:
+            calc(100vh - 50px);
+    }
+
+    .workspace {
+
+        flex-direction: column;
+
+        padding: 7px;
+
+        gap: 7px;
+    }
+
+    .canvas-wrapper {
+
+        flex: none;
+
+        width: 100%;
+
+        height: 52vh;
+
+        min-height: 280px;
+    }
+
+    .sidebar {
+
+        width: 100%;
+
+        flex: 1;
+
+        min-height: 0;
+
+        padding: 11px;
+    }
+
+    select,
+    input[type="number"] {
+
+        height: 38px;
+
+        font-size: 14px;
+    }
+
+    button {
+
+        min-height: 42px;
+
+        font-size: 13px;
+    }
+
+    .statusbar {
+        height: 32px;
+    }
+}
+
+@media (max-height:650px)
+       and (max-width:800px) {
+
+    .canvas-wrapper {
+
+        height: 45vh;
+
+        min-height: 230px;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<header>
+
+    <h1>
+        Dessin Sonore
+    </h1>
+
+    <span>
+        V3.3 — instrument d'exploration
+    </span>
+
+</header>
+
+
+<div class="app">
+
+
+<div class="workspace">
+
+
+<div class="canvas-wrapper">
+
+
+<canvas
+    id="paintCanvas"
+    width="800"
+    height="600">
+</canvas>
+
+
+</div>
+
+
+<aside class="sidebar">
+
+
+<!-- IMAGE -->
+
+<div class="section">
+
+<div class="section-title">
+    Image
+</div>
+
+<label
+    class="file-label"
+    for="imageInput">
+
+    Importer une image
+
+</label>
+
+<input
+    id="imageInput"
+    type="file"
+    accept="image/*">
+
+</div>
+
+
+<!-- INTERPRETATION -->
+
+<div class="section">
+
+<div class="section-title">
+    Interprétation
+</div>
+
+<label for="interpretation">
+    Mode
+</label>
+
+<select id="interpretation">
+
+<option value="spectral">
+    Pixels — spectral
+</option>
+
+<option value="contours">
+    Contours — spectral
+</option>
+
+<option value="mclaren">
+    McLaren — trajectoire
+</option>
+
+<option value="density">
+    Masse — champ
+</option>
+
+</select>
+
+</div>
+
+
+<!-- FILTRES -->
+
+<div class="section">
+
+<div class="section-title">
+    Image / matière
+</div>
+
+
+<label>
+
+    Contraste
+
+    <span
+        class="value"
+        id="contrastValue">
+        0
+    </span>
+
+</label>
+
+<input
+    id="contrast"
+    type="range"
+    min="-100"
+    max="100"
+    value="0">
+
+
+<label>
+
+    Luminosité
+
+    <span
+        class="value"
+        id="brightnessValue">
+        0
+    </span>
+
+</label>
+
+<input
+    id="brightness"
+    type="range"
+    min="-100"
+    max="100"
+    value="0">
+
+
+<label>
+    Noir et blanc
+</label>
+
+<select id="bwMode">
+
+<option value="normal">
+    Normal
+</option>
+
+<option value="bw">
+    Noir et blanc
+</option>
+
+</select>
+
+
+<label>
+    Inversion
+</label>
+
+<select id="invert">
+
+<option value="0">
+    Normale
+</option>
+
+<option value="1">
+    Inversée
+</option>
+
+</select>
+
+
+<label>
+    Inversion des fréquences
+</label>
+
+<select id="invertFrequency">
+
+<option value="0">
+    Grave → aigu
+</option>
+
+<option value="1">
+    Aigu → grave
+</option>
+
+</select>
+
+</div>
+
+
+<!-- ECHELLE -->
+
+<div class="section">
+
+<div class="section-title">
+    Hauteurs
+</div>
+
+<label>
+    Échelle musicale
+</label>
+
+<select id="scale">
+
+<option value="free">
+    Libre
+</option>
+
+<option value="chromatic">
+    Chromatique
+</option>
+
+<option value="major">
+    Majeure
+</option>
+
+<option value="minor">
+    Mineure
+</option>
+
+<option value="pentatonic">
+    Pentatonique
+</option>
+
+</select>
+
+</div>
+
+
+<!-- SON -->
+
+<div class="section">
+
+<div class="section-title">
+    Son
+</div>
+
+
+<label>
+
+    Durée
+
+    <span
+        class="value"
+        id="durationValue">
+        10 s
+    </span>
+
+</label>
+
+<input
+    id="duration"
+    type="range"
+    min="1"
+    max="30"
+    value="10">
+
+
+<label>
+
+    Volume
+
+    <span
+        class="value"
+        id="volumeValue">
+        50 %
+    </span>
+
+</label>
+
+<input
+    id="volume"
+    type="range"
+    min="0"
+    max="100"
+    value="50">
+
+
+<label>
+    Forme d'onde
+</label>
+
+<select id="waveform">
+
+<option value="sine">
+    Sinusoïde
+</option>
+
+<option value="triangle">
+    Triangle
+</option>
+
+<option value="sawtooth">
+    Dent de scie
+</option>
+
+<option value="square">
+    Carrée
+</option>
+
+</select>
+
+
+<label>
+
+    Attaque
+
+    <span
+        class="value"
+        id="attackValue">
+        0.05 s
+    </span>
+
+</label>
+
+<input
+    id="attack"
+    type="range"
+    min="0"
+    max="100"
+    value="5">
+
+
+<label>
+
+    Relâchement
+
+    <span
+        class="value"
+        id="releaseValue">
+        0.20 s
+    </span>
+
+</label>
+
+<input
+    id="release"
+    type="range"
+    min="0"
+    max="200"
+    value="20">
+
+</div>
+
+
+<!-- AVANCE -->
+
+<div class="section">
+
+<div class="section-title">
+    Exploration avancée
+</div>
+
+
+<label>
+    Fréquence minimale
+</label>
+
+<input
+    id="fmin"
+    type="number"
+    min="20"
+    max="20000"
+    value="100">
+
+
+<label>
+    Fréquence maximale
+</label>
+
+<input
+    id="fmax"
+    type="number"
+    min="100"
+    max="20000"
+    value="4000">
+
+
+<label>
+    Nombre de bandes
+</label>
+
+<input
+    id="bins"
+    type="number"
+    min="4"
+    max="200"
+    value="64">
+
+
+<label>
+    Fréquence McLaren
+</label>
+
+<input
+    id="mclarenFrequency"
+    type="number"
+    min="20"
+    max="20000"
+    value="440">
+
+</div>
+
+
+<!-- ACTIONS -->
+
+<div class="section">
+
+<div class="section-title">
+    Écoute
+</div>
+
+<div class="buttons">
+
+<button
+    id="btn-play"
+    class="primary">
+
+    ▶ Jouer
+
+</button>
+
+<button
+    id="btn-stop">
+
+    ■ Stop
+
+</button>
+
+<button
+    id="btn-spectrogram">
+
+    Spectrogramme
+
+</button>
+
+<button
+    id="btn-clear"
+    class="danger">
+
+    Effacer
+
+</button>
+
+</div>
+
+</div>
+
+
+</aside>
+
+
+</div>
+
+
+<div class="statusbar">
+
+<strong id="status">
+
+    Dessinez avec le doigt ou la souris.
+
+</strong>
+
+</div>
+
+
+</div>
+
+
+<!-- SPECTROGRAMME -->
+
+<div
+    id="spectrogramModal"
+    class="modal">
+
+
+<div class="modal-content">
+
+
+<div class="modal-header">
+
+<h2>
+    Spectrogramme
+</h2>
+
+<button
+    id="closeSpectrogram">
+
+    Fermer
+
+</button>
+
+</div>
+
+
+<canvas
+    id="spectrogramCanvas"
+    width="900"
+    height="450">
+</canvas>
+
+
+</div>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+
+/* =========================================================
+   CANVAS
+   ========================================================= */
+
+const canvas =
+    document.getElementById(
+        "paintCanvas"
+    );
+
+const ctx =
+    canvas.getContext(
+        "2d",
+        {
+            willReadFrequently: true
+        }
+    );
+
+
+const rawCanvas =
+    document.createElement(
+        "canvas"
+    );
+
+rawCanvas.width =
+    canvas.width;
+
+rawCanvas.height =
+    canvas.height;
+
+
+const rawCtx =
+    rawCanvas.getContext(
+        "2d",
+        {
+            willReadFrequently: true
+        }
+    );
+
+
+rawCtx.fillStyle =
+    "#ffffff";
+
+rawCtx.fillRect(
+    0,
+    0,
+    rawCanvas.width,
+    rawCanvas.height
+);
+
+
+ctx.fillStyle =
+    "#ffffff";
+
+ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+);
+
+
+rawCtx.strokeStyle =
+    "#000000";
+
+rawCtx.lineWidth =
+    3;
+
+rawCtx.lineCap =
+    "round";
+
+rawCtx.lineJoin =
+    "round";
+
+
+/* =========================================================
+   DESSIN
+   ========================================================= */
+
+let drawing = false;
+
+let lastX = 0;
+let lastY = 0;
+
+let activeTouchId = null;
+
+
+function canvasPosition(
+    clientX,
+    clientY
+) {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+
+    const scaleX =
+        canvas.width /
+        rect.width;
+
+    const scaleY =
+        canvas.height /
+        rect.height;
+
+
+    let x =
+        (
+            clientX -
+            rect.left
+        ) * scaleX;
+
+
+    let y =
+        (
+            clientY -
+            rect.top
+        ) * scaleY;
+
+
+    x = Math.max(
+        0,
+        Math.min(
+            canvas.width,
+            x
+        )
+    );
+
+
+    y = Math.max(
+        0,
+        Math.min(
+            canvas.height,
+            y
+        )
+    );
+
+
+    return {
+        x,
+        y
+    };
+}
+
+
+function beginDrawing(
+    x,
+    y
+) {
+
+    drawing = true;
+
+    lastX = x;
+    lastY = y;
+
+
+    rawCtx.beginPath();
+
+    rawCtx.arc(
+        x,
+        y,
+        rawCtx.lineWidth / 2,
+        0,
+        Math.PI * 2
+    );
+
+    rawCtx.fillStyle =
+        "#000000";
+
+    rawCtx.fill();
+
+
+    scheduleRender();
+
+    setStatus(
+        "Dessin en cours…"
+    );
+}
+
+
+function continueDrawing(
+    x,
+    y
+) {
+
+    if (!drawing) {
+        return;
+    }
+
+
+    rawCtx.beginPath();
+
+    rawCtx.moveTo(
+        lastX,
+        lastY
+    );
+
+    rawCtx.lineTo(
+        x,
+        y
+    );
+
+    rawCtx.stroke();
+
+
+    lastX = x;
+    lastY = y;
+
+
+    scheduleRender();
+}
+
+
+function endDrawing() {
+
+    if (!drawing) {
+        return;
+    }
+
+    drawing = false;
+
+    scheduleRender();
+
+    setStatus(
+        "Dessin prêt."
+    );
+}
+
+
+/* =========================================================
+   SOURIS
+   ========================================================= */
+
+canvas.addEventListener(
+    "mousedown",
+    function(event) {
+
+        if (event.button !== 0) {
+            return;
+        }
+
+
+        const p =
+            canvasPosition(
+                event.clientX,
+                event.clientY
+            );
+
+
+        beginDrawing(
+            p.x,
+            p.y
+        );
+    }
+);
+
+
+canvas.addEventListener(
+    "mousemove",
+    function(event) {
+
+        if (!drawing) {
+            return;
+        }
+
+
+        const p =
+            canvasPosition(
+                event.clientX,
+                event.clientY
+            );
+
+
+        continueDrawing(
+            p.x,
+            p.y
+        );
+    }
+);
+
+
+window.addEventListener(
+    "mouseup",
+    endDrawing
+);
+
+
+/* =========================================================
+   TACTILE
+   ========================================================= */
+
+canvas.addEventListener(
+    "touchstart",
+    function(event) {
+
+        event.preventDefault();
+
+
+        if (drawing) {
+            return;
+        }
+
+
+        const touch =
+            event.changedTouches[0];
+
+
+        if (!touch) {
+            return;
+        }
+
+
+        activeTouchId =
+            touch.identifier;
+
+
+        const p =
+            canvasPosition(
+                touch.clientX,
+                touch.clientY
+            );
+
+
+        beginDrawing(
+            p.x,
+            p.y
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+canvas.addEventListener(
+    "touchmove",
+    function(event) {
+
+        event.preventDefault();
+
+
+        if (!drawing) {
+            return;
+        }
+
+
+        let touch = null;
+
+
+        for (
+            let i = 0;
+            i < event.changedTouches.length;
+            i++
+        ) {
+
+            if (
+                event.changedTouches[i]
+                    .identifier ===
+                activeTouchId
+            ) {
+
+                touch =
+                    event.changedTouches[i];
+
+                break;
+            }
+        }
+
+
+        if (!touch) {
+            return;
+        }
+
+
+        const p =
+            canvasPosition(
+                touch.clientX,
+                touch.clientY
+            );
+
+
+        continueDrawing(
+            p.x,
+            p.y
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+canvas.addEventListener(
+    "touchend",
+    function(event) {
+
+        event.preventDefault();
+
+
+        for (
+            let i = 0;
+            i < event.changedTouches.length;
+            i++
+        ) {
+
+            if (
+                event.changedTouches[i]
+                    .identifier ===
+                activeTouchId
+            ) {
+
+                activeTouchId =
+                    null;
+
+                endDrawing();
+
+                break;
+            }
+        }
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+canvas.addEventListener(
+    "touchcancel",
+    function(event) {
+
+        event.preventDefault();
+
+        activeTouchId = null;
+
+        endDrawing();
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+canvas.addEventListener(
+    "contextmenu",
+    function(event) {
+
+        event.preventDefault();
+
+    }
+);
+
+
+/* =========================================================
+   RENDU
+   ========================================================= */
+
+let filteredImageData = null;
+
+let renderPending = false;
+
+
+function scheduleRender() {
+
+    if (renderPending) {
+        return;
+    }
+
+
+    renderPending = true;
+
+
+    requestAnimationFrame(
+        function() {
+
+            renderPending = false;
+
+            applyFilters();
+
+        }
+    );
+}
+
+
+function applyFilters() {
+
+    const imageData =
+        rawCtx.getImageData(
+            0,
+            0,
+            rawCanvas.width,
+            rawCanvas.height
+        );
+
+
+    const data =
+        imageData.data;
+
+
+    const contrast =
+        Number(
+            document.getElementById(
+                "contrast"
+            ).value
+        );
+
+
+    const brightness =
+        Number(
+            document.getElementById(
+                "brightness"
+            ).value
+        );
+
+
+    const bw =
+        document.getElementById(
+            "bwMode"
+        ).value === "bw";
+
+
+    const invert =
+        document.getElementById(
+            "invert"
+        ).value === "1";
+
+
+    const factor =
+        (
+            259 *
+            (contrast + 255)
+        ) /
+        (
+            255 *
+            (259 - contrast)
+        );
+
+
+    for (
+        let i = 0;
+        i < data.length;
+        i += 4
+    ) {
+
+        let r =
+            data[i];
+
+        let g =
+            data[i + 1];
+
+        let b =
+            data[i + 2];
+
+
+        r =
+            factor *
+            (r - 128) +
+            128 +
+            brightness;
+
+
+        g =
+            factor *
+            (g - 128) +
+            128 +
+            brightness;
+
+
+        b =
+            factor *
+            (b - 128) +
+            128 +
+            brightness;
+
+
+        r =
+            Math.max(
+                0,
+                Math.min(255, r)
+            );
+
+        g =
+            Math.max(
+                0,
+                Math.min(255, g)
+            );
+
+        b =
+            Math.max(
+                0,
+                Math.min(255, b)
+            );
+
+
+        if (bw) {
+
+            const gray =
+                .299 * r +
+                .587 * g +
+                .114 * b;
+
+
+            r = gray;
+            g = gray;
+            b = gray;
+        }
+
+
+        if (invert) {
+
+            r = 255 - r;
+            g = 255 - g;
+            b = 255 - b;
+        }
+
+
+        data[i] =
+            r;
+
+        data[i + 1] =
+            g;
+
+        data[i + 2] =
+            b;
+    }
+
+
+    ctx.putImageData(
+        imageData,
+        0,
+        0
+    );
+
+
+    filteredImageData =
+        ctx.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+}
+
+
+/* =========================================================
+   VALEURS
+   ========================================================= */
+
+function updateValues() {
+
+    document.getElementById(
+        "contrastValue"
+    ).textContent =
+        document.getElementById(
+            "contrast"
+        ).value;
+
+
+    document.getElementById(
+        "brightnessValue"
+    ).textContent =
+        document.getElementById(
+            "brightness"
+        ).value;
+
+
+    document.getElementById(
+        "durationValue"
+    ).textContent =
+        document.getElementById(
+            "duration"
+        ).value +
+        " s";
+
+
+    document.getElementById(
+        "volumeValue"
+    ).textContent =
+        document.getElementById(
+ 
