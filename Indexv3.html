@@ -1,1 +1,3914 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Dessin Sonore — V3.0</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #111;
+  --panel: #1c1c1c;
+  --panel2: #242424;
+  --line: #363636;
+  --text: #e8e8e8;
+  --muted: #aaa;
+  --blue: #42a5f5;
+  --green: #43a047;
+  --red: #d32f2f;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------
+   HEADER
+-------------------------------------------------- */
+
+header {
+  height: 54px;
+  flex:none;
+  background:var(--panel2);
+  border-bottom:1px solid var(--line);
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:0 16px;
+  z-index:10;
+}
+
+header h1 {
+  font-size:1rem;
+  letter-spacing:.5px;
+  color:#fff;
+}
+
+header .version {
+  font-size:.72rem;
+  color:var(--blue);
+  margin-left:7px;
+}
+
+#audio-indicator {
+  font-size:.75rem;
+  font-weight:700;
+  color:#66bb6a;
+}
+
+/* --------------------------------------------------
+   LAYOUT
+-------------------------------------------------- */
+
+.main {
+  flex:1;
+  display:flex;
+  min-height:0;
+}
+
+.workspace {
+  flex:1;
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  padding:10px;
+  gap:10px;
+
+  background:#101010;
+}
+
+/* --------------------------------------------------
+   CANVAS
+-------------------------------------------------- */
+
+.canvas-card {
+  flex:1;
+  min-height:330px;
+
+  background:#000;
+
+  border:1px solid var(--line);
+  border-radius:8px;
+
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+}
+
+.toolbar {
+  background:#202020;
+  border-bottom:1px solid var(--line);
+
+  padding:8px 10px;
+
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  flex-wrap:wrap;
+}
+
+.tool-group {
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+.toolbar label {
+  font-size:.8rem;
+  color:#bbb;
+}
+
+canvas#paintCanvas {
+  display:block;
+
+  flex:1;
+
+  width:100%;
+  height:100%;
+
+  background:#fff;
+
+  touch-action:none;
+}
+
+/* --------------------------------------------------
+   PLAY POSITION
+-------------------------------------------------- */
+
+.play-strip {
+  height:40px;
+
+  background:#181818;
+
+  border:1px solid var(--line);
+  border-radius:7px;
+
+  display:flex;
+  align-items:center;
+
+  padding:0 12px;
+  gap:10px;
+}
+
+.play-strip input {
+  flex:1;
+  accent-color:var(--blue);
+}
+
+#time-val {
+  font-size:.75rem;
+  color:#aaa;
+
+  min-width:80px;
+
+  text-align:right;
+}
+
+/* --------------------------------------------------
+   SIDEBAR
+-------------------------------------------------- */
+
+.sidebar {
+  width:370px;
+  flex:none;
+
+  background:#1b1b1b;
+
+  border-left:1px solid var(--line);
+
+  overflow-y:auto;
+
+  padding:15px;
+
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.section {
+  border-bottom:1px solid #303030;
+  padding-bottom:14px;
+}
+
+.section:last-child {
+  border-bottom:0;
+}
+
+.section-title {
+  font-size:.75rem;
+  font-weight:800;
+
+  text-transform:uppercase;
+  letter-spacing:1px;
+
+  color:var(--blue);
+
+  margin-bottom:10px;
+}
+
+/* --------------------------------------------------
+   MODE
+-------------------------------------------------- */
+
+.mode-tabs {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+
+.mode-tab {
+  border:1px solid #444;
+
+  background:#292929;
+  color:#ccc;
+
+  padding:10px;
+
+  border-radius:6px;
+
+  font-weight:700;
+}
+
+.mode-tab.active {
+  background:#1565c0;
+  color:#fff;
+
+  border-color:#1976d2;
+}
+
+/* --------------------------------------------------
+   CONTROLS
+-------------------------------------------------- */
+
+.grid2 {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.control {
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+
+  margin-bottom:9px;
+}
+
+label {
+  font-size:.82rem;
+  color:#bbb;
+
+  display:flex;
+  justify-content:space-between;
+
+  gap:8px;
+}
+
+input[type=range] {
+  width:100%;
+  accent-color:var(--blue);
+
+  height:25px;
+}
+
+select,
+input[type=number] {
+  width:100%;
+
+  background:#303030;
+
+  border:1px solid #505050;
+
+  color:#fff;
+
+  border-radius:6px;
+
+  padding:10px;
+}
+
+.checks {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+
+  gap:5px;
+}
+
+.check {
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  color:#ccc;
+
+  font-size:.82rem;
+
+  padding:5px 0;
+}
+
+.check input {
+  width:19px;
+  height:19px;
+
+  accent-color:var(--blue);
+}
+
+/* --------------------------------------------------
+   BUTTONS
+-------------------------------------------------- */
+
+.buttons {
+  display:grid;
+
+  grid-template-columns:1fr 1fr 1fr;
+
+  gap:7px;
+}
+
+.btn {
+  border:0;
+
+  border-radius:6px;
+
+  padding:11px 7px;
+
+  color:#fff;
+
+  background:#333;
+
+  font-weight:700;
+
+  font-size:.82rem;
+}
+
+.btn.primary {
+  background:var(--green);
+}
+
+.btn.danger {
+  background:var(--red);
+}
+
+.btn.blue {
+  background:#1565c0;
+}
+
+.small-btn {
+  border:1px solid #4b4b4b;
+
+  background:#2b2b2b;
+
+  color:#ddd;
+
+  border-radius:5px;
+
+  padding:7px 9px;
+
+  font-size:.78rem;
+}
+
+/* --------------------------------------------------
+   PRESETS
+-------------------------------------------------- */
+
+.preset-grid {
+  display:grid;
+
+  grid-template-columns:1fr 1fr;
+
+  gap:6px;
+}
+
+.preset {
+  padding:8px;
+
+  border:1px solid #444;
+
+  border-radius:5px;
+
+  background:#292929;
+
+  color:#ddd;
+
+  font-size:.78rem;
+}
+
+/* --------------------------------------------------
+   STATUS
+-------------------------------------------------- */
+
+.status {
+  font-size:.78rem;
+
+  color:#aaa;
+
+  line-height:1.4;
+}
+
+.help {
+  font-size:.74rem;
+
+  color:#888;
+
+  line-height:1.45;
+}
+
+/* --------------------------------------------------
+   MODAL
+-------------------------------------------------- */
+
+.modal {
+  position:fixed;
+
+  inset:0;
+
+  background:rgba(0,0,0,.88);
+
+  display:none;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:18px;
+
+  z-index:100;
+}
+
+.modal.show {
+  display:flex;
+}
+
+.modal-box {
+  width:min(100%,900px);
+
+  background:#202020;
+
+  border:1px solid #444;
+
+  border-radius:8px;
+
+  padding:14px;
+}
+
+.modal-head {
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+
+  margin-bottom:10px;
+}
+
+.modal-head h2 {
+  font-size:1rem;
+}
+
+#spectroCanvas {
+  width:100%;
+  height:250px;
+
+  background:#000;
+
+  display:block;
+
+  border-radius:4px;
+}
+
+/* --------------------------------------------------
+   MOBILE
+-------------------------------------------------- */
+
+@media(max-width:899px) {
+
+  .main {
+    flex-direction:column;
+  }
+
+  .workspace {
+    min-height:48vh;
+  }
+
+  .sidebar {
+    width:100%;
+
+    border-left:0;
+
+    border-top:1px solid var(--line);
+  }
+}
+
+@media(max-width:560px) {
+
+  header {
+    height:50px;
+    padding:0 10px;
+  }
+
+  header h1 {
+    font-size:.9rem;
+  }
+
+  .version {
+    display:none;
+  }
+
+  .workspace {
+    padding:7px;
+  }
+
+  .sidebar {
+    padding:11px;
+  }
+
+  .canvas-card {
+    min-height:290px;
+  }
+
+  .toolbar {
+    padding:7px;
+  }
+
+  .buttons {
+    grid-template-columns:1fr 1fr 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <h1>
+    DESSIN SONORE
+    <span class="version">V3.0</span>
+  </h1>
+
+  <span id="audio-indicator">
+    AUDIO : PRÊT
+  </span>
+
+</header>
+
+
+<div class="main">
+
+<!-- ==================================================
+     ESPACE DE TRAVAIL
+================================================== -->
+
+<main class="workspace">
+
+  <div class="canvas-card">
+
+    <div class="toolbar">
+
+      <div class="tool-group">
+
+        <label>Épaisseur</label>
+
+        <input
+          type="range"
+          id="brush-size"
+          min="1"
+          max="40"
+          value="6"
+        >
+
+        <span
+          id="brush-val"
+          style="font-size:.78rem"
+        >
+          6
+        </span>
+
+      </div>
+
+
+      <button
+        class="small-btn"
+        id="btn-browse"
+      >
+        📂 Importer
+      </button>
+
+      <input
+        type="file"
+        id="file-input"
+        accept="image/*"
+        hidden
+      >
+
+
+      <button
+        class="small-btn"
+        id="btn-clear"
+      >
+        ⌫ Effacer
+      </button>
+
+
+      <button
+        class="small-btn"
+        id="btn-reset"
+      >
+        ↶ Réinitialiser
+      </button>
+
+    </div>
+
+
+    <canvas
+      id="paintCanvas"
+      width="800"
+      height="600"
+    ></canvas>
+
+  </div>
+
+
+  <!-- POSITION DE LECTURE -->
+
+  <div class="play-strip">
+
+    <span style="font-size:.78rem">
+      Lecture
+    </span>
+
+    <input
+      id="play-position"
+      type="range"
+      min="0"
+      max="1000"
+      value="0"
+    >
+
+    <span id="time-val">
+      0.0 / 0.0 s
+    </span>
+
+  </div>
+
+</main>
+
+
+<!-- ==================================================
+     PANNEAU DE CONTROLE
+================================================== -->
+
+<aside class="sidebar">
+
+
+<!-- MODE -->
+
+<section class="section">
+
+  <div class="section-title">
+    ✏️ Mode de création
+  </div>
+
+  <div class="mode-tabs">
+
+    <button
+      class="mode-tab active"
+      id="mode-draw"
+    >
+      Dessiner
+    </button>
+
+    <button
+      class="mode-tab"
+      id="mode-analyse"
+    >
+      Analyser
+    </button>
+
+  </div>
+
+  <p
+    class="help"
+    style="margin-top:8px"
+  >
+    Dessine directement sur la toile ou importe une image.
+    Le dessin original est conservé séparément des traitements.
+  </p>
+
+</section>
+
+
+<!-- IMAGE -->
+
+<section class="section">
+
+  <div class="section-title">
+    🌓 Image
+  </div>
+
+
+  <div class="control">
+
+    <label>
+      Contraste
+      <span id="contrast-val">1.00</span>
+    </label>
+
+    <input
+      type="range"
+      id="contrast"
+      min=".1"
+      max="3"
+      value="1"
+      step=".05"
+    >
+
+  </div>
+
+
+  <div class="control">
+
+    <label>
+      Luminosité
+      <span id="brightness-val">1.00</span>
+    </label>
+
+    <input
+      type="range"
+      id="brightness"
+      min=".1"
+      max="3"
+      value="1"
+      step=".05"
+    >
+
+  </div>
+
+
+  <div class="checks">
+
+    <label class="check">
+      <input
+        type="checkbox"
+        id="invert-bw"
+      >
+      Inverser N/B
+    </label>
+
+
+    <label class="check">
+      <input
+        type="checkbox"
+        id="invert-freq"
+      >
+      Inverser fréq.
+    </label>
+
+  </div>
+
+</section>
+
+
+<!-- INTERPRETATION -->
+
+<section class="section">
+
+  <div class="section-title">
+    🔬 Interprétation
+  </div>
+
+
+  <div class="control">
+
+    <label for="analysis-select">
+      Lecture graphique
+    </label>
+
+    <select id="analysis-select">
+
+      <option value="spectral">
+        Pixels — spectral
+      </option>
+
+      <option value="contours">
+        Contours — spectral
+      </option>
+
+      <option value="mclaren">
+        McLaren — trajectoire
+      </option>
+
+      <option value="density">
+        Masse — densité
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="control">
+
+    <label for="scale-select">
+      Gamme
+    </label>
+
+    <select id="scale-select">
+
+      <option value="free">
+        Libre
+      </option>
+
+      <option value="chromatic">
+        Chromatique
+      </option>
+
+      <option value="major">
+        Majeure
+      </option>
+
+      <option value="minor">
+        Mineure
+      </option>
+
+      <option value="pentatonic">
+        Pentatonique
+      </option>
+
+    </select>
+
+  </div>
+
+</section>
+
+
+<!-- SON -->
+
+<section class="section">
+
+  <div class="section-title">
+    🔊 Son
+  </div>
+
+
+  <div class="grid2">
+
+    <div class="control">
+
+      <label>
+        Durée
+        <span id="duration-val">4</span>s
+      </label>
+
+      <input
+        type="range"
+        id="duration"
+        min=".5"
+        max="60"
+        value="4"
+        step=".5"
+      >
+
+    </div>
+
+
+    <div class="control">
+
+      <label>
+        Volume
+        <span id="volume-val">0.85</span>
+      </label>
+
+      <input
+        type="range"
+        id="volume"
+        min="0"
+        max="1"
+        value=".85"
+        step=".01"
+      >
+
+    </div>
+
+  </div>
+
+
+  <div class="control">
+
+    <label>
+      Synthèse
+    </label>
+
+    <select id="wave-select">
+
+      <option value="sine">
+        Sinusoïde
+      </option>
+
+      <option value="triangle">
+        Triangle
+      </option>
+
+      <option value="sawtooth">
+        Dent de scie
+      </option>
+
+      <option value="square">
+        Carré
+      </option>
+
+      <option value="noise">
+        Bruit
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="grid2">
+
+    <div class="control">
+
+      <label>
+        Attaque
+        <span id="attack-val">.02</span>s
+      </label>
+
+      <input
+        type="range"
+        id="attack"
+        min="0"
+        max="1"
+        value=".02"
+        step=".01"
+      >
+
+    </div>
+
+
+    <div class="control">
+
+      <label>
+        Relâchement
+        <span id="release-val">.08</span>s
+      </label>
+
+      <input
+        type="range"
+        id="release"
+        min=".01"
+        max="2"
+        value=".08"
+        step=".01"
+      >
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- PRESETS -->
+
+<section class="section">
+
+  <div class="section-title">
+    ✨ Presets
+  </div>
+
+
+  <div class="preset-grid">
+
+    <button
+      class="preset"
+      data-preset="scanner"
+    >
+      🔬 Scanner
+    </button>
+
+    <button
+      class="preset"
+      data-preset="drawing"
+    >
+      ✏️ Dessin
+    </button>
+
+    <button
+      class="preset"
+      data-preset="cosmos"
+    >
+      🌌 Cosmos
+    </button>
+
+    <button
+      class="preset"
+      data-preset="glitch"
+    >
+      ⚡ Glitch
+    </button>
+
+    <button
+      class="preset"
+      data-preset="musical"
+    >
+      🎹 Musical
+    </button>
+
+    <button
+      class="preset"
+      data-preset="chaos"
+    >
+      🌀 Chaos
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- PARAMETRES AVANCES -->
+
+<section class="section">
+
+  <details class="advanced">
+
+    <summary>
+      ⚙️ Paramètres avancés
+    </summary>
+
+
+    <div
+      class="grid2"
+      style="margin-top:8px"
+    >
+
+      <div class="control">
+
+        <label>
+          Freq. min (Hz)
+        </label>
+
+        <input
+          type="number"
+          id="fmin"
+          value="80"
+          min="20"
+          max="20000"
+        >
+
+      </div>
+
+
+      <div class="control">
+
+        <label>
+          Freq. max (Hz)
+        </label>
+
+        <input
+          type="number"
+          id="fmax"
+          value="4000"
+          min="40"
+          max="20000"
+        >
+
+      </div>
+
+    </div>
+
+
+    <div class="control">
+
+      <label>
+        Résolution
+        <span id="bins-val">40</span>
+      </label>
+
+      <input
+        type="range"
+        id="nbins"
+        min="20"
+        max="120"
+        value="40"
+      >
+
+    </div>
+
+
+    <div class="control">
+
+      <label>
+        Fréquence McLaren (Hz)
+      </label>
+
+      <input
+        type="number"
+        id="mclaren-freq"
+        value="220"
+        min="20"
+        max="2000"
+      >
+
+    </div>
+
+  </details>
+
+</section>
+
+
+<!-- ACTIONS -->
+
+<section>
+
+  <div class="buttons">
+
+    <button
+      class="btn primary"
+      id="btn-play"
+    >
+      ▶ Jouer
+    </button>
+
+    <button
+      class="btn danger"
+      id="btn-stop"
+    >
+      ■ Stop
+    </button>
+
+    <button
+      class="btn blue"
+      id="btn-spectrogram"
+    >
+      📊 Voir
+    </button>
+
+  </div>
+
+
+  <div
+    class="status"
+    id="status-bar"
+    style="margin-top:9px"
+  >
+    Prêt. Dessine ou importe une image.
+  </div>
+
+</section>
+
+</aside>
+
+</div>
+
+
+<!-- ==================================================
+     SPECTROGRAMME
+================================================== -->
+
+<div
+  class="modal"
+  id="modal-spectro"
+>
+
+  <div class="modal-box">
+
+    <div class="modal-head">
+
+      <h2>
+        Spectrogramme
+      </h2>
+
+      <button
+        class="small-btn"
+        id="btn-close-modal"
+      >
+        ✕
+      </button>
+
+    </div>
+
+
+    <canvas
+      id="spectroCanvas"
+      width="900"
+      height="250"
+    ></canvas>
+
+  </div>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+
+/* ==================================================
+   VARIABLES
+================================================== */
+
+let audioCtx = null;
+let currentSource = null;
+
+let lastAudioBuffer = null;
+
+let isDrawing = false;
+
+let lastX = 0;
+let lastY = 0;
+
+let animationId = null;
+
+let playStartedAt = 0;
+let playDuration = 0;
+
+let manualStop = false;
+
+
+/* ==================================================
+   ELEMENTS
+================================================== */
+
+const paintCanvas =
+  document.getElementById("paintCanvas");
+
+const pCtx =
+  paintCanvas.getContext(
+    "2d",
+    { willReadFrequently:true }
+  );
+
+
+/*
+   Canvas original.
+   Il conserve le dessin avant traitement.
+*/
+
+const rawCanvas =
+  document.createElement("canvas");
+
+rawCanvas.width =
+  paintCanvas.width;
+
+rawCanvas.height =
+  paintCanvas.height;
+
+const rawCtx =
+  rawCanvas.getContext(
+    "2d",
+    { willReadFrequently:true }
+  );
+
+
+/* ==================================================
+   AUDIO
+================================================== */
+
+function initAudio() {
+
+  if (!audioCtx) {
+
+    audioCtx =
+      new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+  }
+
+  if (
+    audioCtx.state === "suspended"
+  ) {
+
+    audioCtx.resume();
+
+  }
+
+}
+
+
+/* ==================================================
+   TOILE
+================================================== */
+
+function clearCanvas() {
+
+  pCtx.fillStyle = "#fff";
+
+  pCtx.fillRect(
+    0,
+    0,
+    paintCanvas.width,
+    paintCanvas.height
+  );
+
+
+  rawCtx.fillStyle = "#fff";
+
+  rawCtx.fillRect(
+    0,
+    0,
+    rawCanvas.width,
+    rawCanvas.height
+  );
+
+
+  stopAudio(false);
+
+  drawPlayhead(-1);
+
+  document.getElementById(
+    "status-bar"
+  ).textContent =
+    "Toile effacée.";
+
+}
+
+
+function resetImage() {
+
+  document.getElementById(
+    "contrast"
+  ).value = 1;
+
+  document.getElementById(
+    "brightness"
+  ).value = 1;
+
+  document.getElementById(
+    "invert-bw"
+  ).checked = false;
+
+  document.getElementById(
+    "invert-freq"
+  ).checked = false;
+
+  document.getElementById(
+    "analysis-select"
+  ).value = "spectral";
+
+  document.getElementById(
+    "scale-select"
+  ).value = "free";
+
+
+  updateLabels();
+
+  applyFilters();
+
+  stopAudio(false);
+
+  document.getElementById(
+    "status-bar"
+  ).textContent =
+    "Paramètres réinitialisés.";
+
+}
+
+
+/* ==================================================
+   AFFICHAGE DES VALEURS
+================================================== */
+
+function updateLabels() {
+
+  document.getElementById(
+    "brush-val"
+  ).textContent =
+    document.getElementById(
+      "brush-size"
+    ).value;
+
+
+  document.getElementById(
+    "contrast-val"
+  ).textContent =
+    Number(
+      document.getElementById(
+        "contrast"
+      ).value
+    ).toFixed(2);
+
+
+  document.getElementById(
+    "brightness-val"
+  ).textContent =
+    Number(
+      document.getElementById(
+        "brightness"
+      ).value
+    ).toFixed(2);
+
+
+  document.getElementById(
+    "duration-val"
+  ).textContent =
+    document.getElementById(
+      "duration"
+    ).value;
+
+
+  document.getElementById(
+    "volume-val"
+  ).textContent =
+    Number(
+      document.getElementById(
+        "volume"
+      ).value
+    ).toFixed(2);
+
+
+  document.getElementById(
+    "attack-val"
+  ).textContent =
+    Number(
+      document.getElementById(
+        "attack"
+      ).value
+    ).toFixed(2);
+
+
+  document.getElementById(
+    "release-val"
+  ).textContent =
+    Number(
+      document.getElementById(
+        "release"
+      ).value
+    ).toFixed(2);
+
+
+  document.getElementById(
+    "bins-val"
+  ).textContent =
+    document.getElementById(
+      "nbins"
+    ).value;
+
+}
+
+
+updateLabels();
+
+clearCanvas();
+
+
+/* ==================================================
+   POSITION SOURIS / TACTILE
+================================================== */
+
+function getPos(e) {
+
+  const rect =
+    paintCanvas.getBoundingClientRect();
+
+  const source =
+    e.touches
+      ? e.touches[0]
+      : e;
+
+
+  return {
+
+    x:
+      (source.clientX - rect.left)
+      *
+      paintCanvas.width
+      /
+      rect.width,
+
+    y:
+      (source.clientY - rect.top)
+      *
+      paintCanvas.height
+      /
+      rect.height
+
+  };
+
+}
+
+
+/* ==================================================
+   DESSIN
+================================================== */
+
+function startDraw(e) {
+
+  if (e.cancelable)
+    e.preventDefault();
+
+  isDrawing = true;
+
+  const p =
+    getPos(e);
+
+  lastX = p.x;
+  lastY = p.y;
+
+  const size =
+    Number(
+      document.getElementById(
+        "brush-size"
+      ).value
+    );
+
+
+  /*
+     Point initial.
+  */
+
+  [pCtx, rawCtx].forEach(
+    ctx => {
+
+      ctx.beginPath();
+
+      ctx.arc(
+        lastX,
+        lastY,
+        size / 2,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle =
+        "#000";
+
+      ctx.fill();
+
+    }
+  );
+
+}
+
+
+function draw(e) {
+
+  if (!isDrawing)
+    return;
+
+  if (e.cancelable)
+    e.preventDefault();
+
+
+  const p =
+    getPos(e);
+
+  const size =
+    Number(
+      document.getElementById(
+        "brush-size"
+      ).value
+    );
+
+
+  [pCtx, rawCtx].forEach(
+    ctx => {
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        lastX,
+        lastY
+      );
+
+      ctx.lineTo(
+        p.x,
+        p.y
+      );
+
+      ctx.strokeStyle =
+        "#000";
+
+      ctx.lineWidth =
+        size;
+
+      ctx.lineCap =
+        "round";
+
+      ctx.lineJoin =
+        "round";
+
+      ctx.stroke();
+
+    }
+  );
+
+
+  lastX = p.x;
+  lastY = p.y;
+
+}
+
+
+function stopDraw() {
+
+  if (!isDrawing)
+    return;
+
+  isDrawing = false;
+
+  applyFilters();
+
+  document.getElementById(
+    "status-bar"
+  ).textContent =
+    "Dessin modifié.";
+
+}
+
+
+/* souris */
+
+paintCanvas.addEventListener(
+  "mousedown",
+  startDraw
+);
+
+paintCanvas.addEventListener(
+  "mousemove",
+  draw
+);
+
+window.addEventListener(
+  "mouseup",
+  stopDraw
+);
+
+
+/* tactile */
+
+paintCanvas.addEventListener(
+  "touchstart",
+  startDraw,
+  { passive:false }
+);
+
+paintCanvas.addEventListener(
+  "touchmove",
+  draw,
+  { passive:false }
+);
+
+paintCanvas.addEventListener(
+  "touchend",
+  stopDraw,
+  { passive:false }
+);
+
+
+/* ==================================================
+   IMPORT IMAGE
+================================================== */
+
+document.getElementById(
+  "btn-browse"
+).onclick = () => {
+
+  document.getElementById(
+    "file-input"
+  ).click();
+
+};
+
+
+document.getElementById(
+  "file-input"
+).addEventListener(
+  "change",
+  e => {
+
+    const file =
+      e.target.files[0];
+
+    if (!file)
+      return;
+
+
+    const reader =
+      new FileReader();
+
+
+    reader.onload =
+      event => {
+
+        const img =
+          new Image();
+
+
+        img.onload =
+          () => {
+
+            rawCtx.fillStyle =
+              "#fff";
+
+            rawCtx.fillRect(
+              0,
+              0,
+              rawCanvas.width,
+              rawCanvas.height
+            );
+
+
+            const scale =
+              Math.min(
+                rawCanvas.width / img.width,
+                rawCanvas.height / img.height
+              );
+
+
+            const width =
+              img.width * scale;
+
+            const height =
+              img.height * scale;
+
+
+            rawCtx.drawImage(
+              img,
+              (rawCanvas.width - width) / 2,
+              (rawCanvas.height - height) / 2,
+              width,
+              height
+            );
+
+
+            applyFilters();
+
+
+            document.getElementById(
+              "mode-analyse"
+            ).click();
+
+
+            document.getElementById(
+              "status-bar"
+            ).textContent =
+              "Image importée.";
+
+          };
+
+
+        img.src =
+          event.target.result;
+
+      };
+
+
+    reader.readAsDataURL(file);
+
+    e.target.value = "";
+
+  }
+);
+
+
+/* ==================================================
+   FILTRES
+================================================== */
+
+function applyFilters() {
+
+  const contrast =
+    Number(
+      document.getElementById(
+        "contrast"
+      ).value
+    );
+
+
+  const brightness =
+    Number(
+      document.getElementById(
+        "brightness"
+      ).value
+    );
+
+
+  const invert =
+    document.getElementById(
+      "invert-bw"
+    ).checked;
+
+
+  const image =
+    rawCtx.getImageData(
+      0,
+      0,
+      rawCanvas.width,
+      rawCanvas.height
+    );
+
+
+  const data =
+    image.data;
+
+
+  for (
+    let i = 0;
+    i < data.length;
+    i += 4
+  ) {
+
+    let gray =
+      (
+        data[i] +
+        data[i + 1] +
+        data[i + 2]
+      ) / 3;
+
+
+    gray =
+      (
+        (gray - 128)
+        *
+        contrast
+        +
+        128
+      )
+      *
+      brightness;
+
+
+    gray =
+      Math.max(
+        0,
+        Math.min(
+          255,
+          gray
+        )
+      );
+
+
+    if (invert)
+      gray = 255 - gray;
+
+
+    data[i] =
+      gray;
+
+    data[i + 1] =
+      gray;
+
+    data[i + 2] =
+      gray;
+
+  }
+
+
+  pCtx.putImageData(
+    image,
+    0,
+    0
+  );
+
+}
+
+
+/* filtres */
+
+["contrast","brightness"]
+.forEach(
+  id => {
+
+    document.getElementById(
+      id
+    ).oninput = () => {
+
+      updateLabels();
+
+      applyFilters();
+
+    };
+
+  }
+);
+
+
+document.getElementById(
+  "invert-bw"
+).onchange =
+  applyFilters;
+
+
+/* autres curseurs */
+
+[
+  "brush-size",
+  "duration",
+  "volume",
+  "attack",
+  "release",
+  "nbins"
+]
+.forEach(
+  id => {
+
+    document.getElementById(
+      id
+    ).oninput =
+      updateLabels;
+
+  }
+);
+
+
+/* ==================================================
+   MODE
+================================================== */
+
+document.getElementById(
+  "mode-draw"
+).onclick = () => {
+
+  document.getElementById(
+    "mode-draw"
+  ).classList.add(
+    "active"
+  );
+
+  document.getElementById(
+    "mode-analyse"
+  ).classList.remove(
+    "active"
+  );
+
+
+  document.getElementById(
+    "status-bar"
+  ).textContent =
+    "Mode dessin : trace directement sur la toile.";
+
+};
+
+
+document.getElementById(
+  "mode-analyse"
+).onclick = () => {
+
+  document.getElementById(
+    "mode-analyse"
+  ).classList.add(
+    "active"
+  );
+
+  document.getElementById(
+    "mode-draw"
+  ).classList.remove(
+    "active"
+  );
+
+
+  document.getElementById(
+    "status-bar"
+  ).textContent =
+    "Mode analyse : l’image est interprétée.";
+
+};
+
+
+/* ==================================================
+   CONTOURS — SOBEL
+================================================== */
+
+function makeContourMap(
+  data,
+  width,
+  height
+) {
+
+  const output =
+    new Float32Array(
+      width * height
+    );
+
+
+  function ink(x,y) {
+
+    return 1 -
+      data[
+        y * width + x
+      ];
+
+  }
+
+
+  for (
+    let y = 1;
+    y < height - 1;
+    y++
+  ) {
+
+    for (
+      let x = 1;
+      x < width - 1;
+      x++
+    ) {
+
+      const gx =
+        -ink(x-1,y-1)
+        -2*ink(x-1,y)
+        -ink(x-1,y+1)
+        +
+        ink(x+1,y-1)
+        +
+        2*ink(x+1,y)
+        +
+        ink(x+1,y+1);
+
+
+      const gy =
+        -ink(x-1,y-1)
+        -2*ink(x,y-1)
+        -ink(x+1,y-1)
+        +
+        ink(x-1,y+1)
+        +
+        2*ink(x,y+1)
+        +
+        ink(x+1,y+1);
+
+
+      output[
+        y * width + x
+      ] =
+        Math.min(
+          1,
+          Math.sqrt(
+            gx*gx +
+            gy*gy
+          )
+        );
+
+    }
+
+  }
+
+
+  return output;
+
+}
+
+
+/* ==================================================
+   GAMMES MUSICALES
+================================================== */
+
+function quantizeFrequency(freq) {
+
+  const scale =
+    document.getElementById(
+      "scale-select"
+    ).value;
+
+
+  if (scale === "free")
+    return freq;
+
+
+  const scales = {
+
+    chromatic:
+      [0,1,2,3,4,5,6,7,8,9,10,11],
+
+    major:
+      [0,2,4,5,7,9,11],
+
+    minor:
+      [0,2,3,5,7,8,10],
+
+    pentatonic:
+      [0,2,4,7,9]
+
+  };
+
+
+  const notes =
+    scales[scale];
+
+
+  const midi =
+    69 +
+    12 *
+    Math.log2(
+      freq / 440
+    );
+
+
+  const octave =
+    Math.floor(
+      midi / 12
+    );
+
+
+  const pitchClass =
+    (
+      Math.round(midi) % 12
+      + 12
+    ) % 12;
+
+
+  let best =
+    notes[0];
+
+  let distance =
+    Infinity;
+
+
+  for (
+    const note of notes
+  ) {
+
+    const d =
+      Math.min(
+        Math.abs(
+          note -
+          pitchClass
+        ),
+        12 -
+        Math.abs(
+          note -
+          pitchClass
+        )
+      );
+
+
+    if (d < distance) {
+
+      distance = d;
+
+      best = note;
+
+    }
+
+  }
+
+
+  return 440 *
+    Math.pow(
+      2,
+      (
+        octave * 12 +
+        best -
+        69
+      ) / 12
+    );
+
+}
+
+
+/* ==================================================
+   OSCILLATEURS
+================================================== */
+
+function waveSample(
+  type,
+  phase
+) {
+
+  if (type === "triangle") {
+
+    const t =
+      phase /
+      (2 * Math.PI);
+
+    return 1 -
+      4 *
+      Math.abs(
+        Math.round(t) - t
+      );
+
+  }
+
+
+  if (type === "sawtooth") {
+
+    const t =
+      phase /
+      (2 * Math.PI);
+
+    return 2 *
+      (
+        t -
+        Math.floor(
+          t + .5
+        )
+      );
+
+  }
+
+
+  if (type === "square") {
+
+    return Math.sin(
+      phase
+    ) >= 0
+      ? 1
+      : -1;
+
+  }
+
+
+  return Math.sin(
+    phase
+  );
+
+}
+
+
+/* ==================================================
+   LECTURE IMAGE
+================================================== */
+
+function getNormalizedImage() {
+
+  const image =
+    pCtx.getImageData(
+      0,
+      0,
+      paintCanvas.width,
+      paintCanvas.height
+    );
+
+
+  const data =
+    image.data;
+
+
+  const result =
+    new Float32Array(
+      paintCanvas.width *
+      paintCanvas.height
+    );
+
+
+  for (
+    let i = 0;
+    i < result.length;
+    i++
+  ) {
+
+    result[i] =
+      data[i * 4] / 255;
+
+  }
+
+
+  return result;
+
+}
+
+
+/* ==================================================
+   FREQUENCE
+================================================== */
+
+function frequencyFromY(
+  y,
+  height,
+  fmin,
+  fmax,
+  invert
+) {
+
+  let normalized =
+    y /
+    (height - 1);
+
+
+  if (invert)
+    normalized =
+      1 - normalized;
+
+
+  return fmin *
+    Math.pow(
+      fmax / fmin,
+      1 - normalized
+    );
+
+}
+
+
+/* ==================================================
+   GENERATION AUDIO
+================================================== */
+
+function generateAudio() {
+
+  initAudio();
+
+
+  const width =
+    paintCanvas.width;
+
+  const height =
+    paintCanvas.height;
+
+
+  const data =
+    getNormalizedImage();
+
+
+  const duration =
+    Number(
+      document.getElementById(
+        "duration"
+      ).value
+    );
+
+
+  const sampleRate =
+    audioCtx.sampleRate;
+
+
+  const totalSamples =
+    Math.floor(
+      sampleRate *
+      duration
+    );
+
+
+  const channel =
+    new Float32Array(
+      totalSamples
+    );
+
+
+  const mode =
+    document.getElementById(
+      "analysis-select"
+    ).value;
+
+
+  const invertFreq =
+    document.getElementById(
+      "invert-freq"
+    ).checked;
+
+
+  const fmin =
+    Math.max(
+      20,
+      Number(
+        document.getElementById(
+          "fmin"
+        ).value
+      ) || 80
+    );
+
+
+  const fmax =
+    Math.max(
+      fmin + 1,
+      Number(
+        document.getElementById(
+          "fmax"
+        ).value
+      ) || 4000
+    );
+
+
+  const bins =
+    Number(
+      document.getElementById(
+        "nbins"
+      ).value
+    ) || 40;
+
+
+  const wave =
+    document.getElementById(
+      "wave-select"
+    ).value;
+
+
+  const volume =
+    Number(
+      document.getElementById(
+        "volume"
+      ).value
+    );
+
+
+  const attack =
+    Number(
+      document.getElementById(
+        "attack"
+      ).value
+    );
+
+
+  const release =
+    Number(
+      document.getElementById(
+        "release"
+      ).value
+    );
+
+
+  const attackSamples =
+    Math.max(
+      1,
+      Math.floor(
+        attack *
+        sampleRate
+      )
+    );
+
+
+  const releaseSamples =
+    Math.max(
+      1,
+      Math.floor(
+        release *
+        sampleRate
+      )
+    );
+
+
+  /*
+     Mode contours :
+     on remplace l'image par
+     sa carte de contours.
+  */
+
+  const sourceData =
+    mode === "contours"
+      ? makeContourMap(
+          data,
+          width,
+          height
+        )
+      : data;
+
+
+  function amplitude(value) {
+
+    const ink =
+      1 - value;
+
+    return Math.max(
+      0,
+      (ink - .12) /
+      .88
+    );
+
+  }
+
+
+  /* ----------------------------------------------
+     SPECTRAL
+  ---------------------------------------------- */
+
+  if (
+    mode === "spectral" ||
+    mode === "contours"
+  ) {
+
+    const phases =
+      new Float64Array(
+        bins
+      );
+
+
+    const frequencies =
+      new Float64Array(
+        bins
+      );
+
+
+    const rows =
+      new Int32Array(
+        bins
+      );
+
+
+    for (
+      let b = 0;
+      b < bins;
+      b++
+    ) {
+
+      const bin =
+        invertFreq
+          ? bins - 1 - b
+          : b;
+
+
+      rows[b] =
+        Math.max(
+          0,
+          Math.min(
+            height - 1,
+            Math.floor(
+              (
+                1 -
+                bin / bins
+              ) *
+              (height - 1)
+            )
+          )
+        );
+
+
+      frequencies[b] =
+        quantizeFrequency(
+          frequencyFromY(
+            rows[b],
+            height,
+            fmin,
+            fmax,
+            false
+          )
+        );
+
+    }
+
+
+    for (
+      let i = 0;
+      i < totalSamples;
+      i++
+    ) {
+
+      const x =
+        Math.min(
+          width - 1,
+          Math.floor(
+            i /
+            totalSamples *
+            (width - 1)
+          )
+        );
+
+
+      let sample = 0;
+
+
+      for (
+        let b = 0;
+        b < bins;
+        b++
+      ) {
+
+        const value =
+          sourceData[
+            rows[b] *
+            width +
+            x
+          ];
+
+
+        const amp =
+          amplitude(
+            value
+          );
+
+
+        phases[b] +=
+          2 *
+          Math.PI *
+          frequencies[b] /
+          sampleRate;
+
+
+        if (
+          wave === "noise"
+        ) {
+
+          sample +=
+            (
+              Math.random() *
+              2 -
+              1
+            ) *
+            amp;
+
+        } else {
+
+          sample +=
+            waveSample(
+              wave,
+              phases[b]
+            ) *
+            amp;
+
+        }
+
+      }
+
+
+      channel[i] =
+        sample /
+        bins;
+
+    }
+
+  }
+
+
+  /* ----------------------------------------------
+     McLAREN
+  ---------------------------------------------- */
+
+  else if (
+    mode === "mclaren"
+  ) {
+
+    const baseFrequency =
+      Number(
+        document.getElementById(
+          "mclaren-freq"
+        ).value
+      ) || 220;
+
+
+    let phase = 0;
+
+
+    for (
+      let i = 0;
+      i < totalSamples;
+      i++
+    ) {
+
+      const x =
+        Math.min(
+          width - 1,
+          Math.floor(
+            i /
+            totalSamples *
+            (width - 1)
+          )
+        );
+
+
+      let weightedY = 0;
+      let totalWeight = 0;
+
+
+      for (
+        let y = 0;
+        y < height;
+        y++
+      ) {
+
+        const amp =
+          amplitude(
+            data[
+              y * width +
+              x
+            ]
+          );
+
+
+        weightedY +=
+          y *
+          amp;
+
+
+        totalWeight +=
+          amp;
+
+      }
+
+
+      if (
+        totalWeight > .05
+      ) {
+
+        const centroid =
+          weightedY /
+          totalWeight;
+
+
+        let normalized =
+          (
+            height / 2 -
+            centroid
+          )
+          /
+          (height / 2);
+
+
+        if (invertFreq)
+          normalized =
+            -normalized;
+
+
+        let frequency =
+          baseFrequency *
+          Math.pow(
+            2,
+            normalized *
+            1.5
+          );
+
+
+        frequency =
+          quantizeFrequency(
+            frequency
+          );
+
+
+        phase +=
+          2 *
+          Math.PI *
+          frequency /
+          sampleRate;
+
+
+        if (
+          wave === "noise"
+        ) {
+
+          channel[i] =
+            (
+              Math.random() *
+              2 -
+              1
+            ) *
+            Math.min(
+              1,
+              totalWeight / 18
+            );
+
+        } else {
+
+          channel[i] =
+            waveSample(
+              wave,
+              phase
+            ) *
+            Math.min(
+              1,
+              totalWeight / 18
+            );
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  /* ----------------------------------------------
+     DENSITY
+  ---------------------------------------------- */
+
+  else {
+
+    for (
+      let i = 0;
+      i < totalSamples;
+      i++
+    ) {
+
+      const x =
+        Math.min(
+          width - 1,
+          Math.floor(
+            i /
+            totalSamples *
+            (width - 1)
+          )
+        );
+
+
+      let sum = 0;
+
+
+      for (
+        let y = 0;
+        y < height;
+        y++
+      ) {
+
+        sum +=
+          amplitude(
+            data[
+              y * width +
+              x
+            ]
+          );
+
+      }
+
+
+      const density =
+        sum / height;
+
+
+      channel[i] =
+        (
+          Math.random() *
+          2 -
+          1
+        ) *
+        density;
+
+    }
+
+  }
+
+
+  /* ==================================================
+     ENVELOPPE
+  ================================================== */
+
+  for (
+    let i = 0;
+    i < totalSamples;
+    i++
+  ) {
+
+    let envelope = 1;
+
+
+    if (
+      i <
+      attackSamples
+    ) {
+
+      envelope =
+        i /
+        attackSamples;
+
+    }
+
+
+    const remaining =
+      totalSamples - i;
+
+
+    if (
+      remaining <
+      releaseSamples
+    ) {
+
+      envelope =
+        Math.min(
+          envelope,
+          remaining /
+          releaseSamples
+        );
+
+    }
+
+
+    channel[i] *=
+      envelope;
+
+  }
+
+
+  /* ==================================================
+     NORMALISATION
+  ================================================== */
+
+  let maxAmplitude = 0;
+
+
+  for (
+    let i = 0;
+    i < totalSamples;
+    i++
+  ) {
+
+    maxAmplitude =
+      Math.max(
+        maxAmplitude,
+        Math.abs(
+          channel[i]
+        )
+      );
+
+  }
+
+
+  if (
+    maxAmplitude > 0
+  ) {
+
+    for (
+      let i = 0;
+      i < totalSamples;
+      i++
+    ) {
+
+      channel[i] =
+        (
+          channel[i] /
+          maxAmplitude
+        ) *
+        volume;
+
+    }
+
+  }
+
+
+  /* ==================================================
+     BUFFER
+  ================================================== */
+
+  const buffer =
+    audioCtx.createBuffer(
+      1,
+      totalSamples,
+      sampleRate
+    );
+
+
+  buffer.copyToChannel(
+    channel,
+    0
+  );
+
+
+  lastAudioBuffer =
+    buffer;
+
+
+  return buffer;
+
+}
+
+
+/* ==================================================
+   PLAYHEAD
+================================================== */
+
+function drawPlayhead(
+  progress
+) {
+
+  applyFilters();
+
+
+  if (
+    progress < 0
+  )
+    return;
+
+
+  const x =
+    Math.max(
+      0,
+      Math.min(
+        paintCanvas.width - 1,
+        progress *
+        (
+          paintCanvas.width - 1
+        )
+      )
+    );
+
+
+  pCtx.save();
+
+
+  pCtx.strokeStyle =
+    "#e53935";
+
+  pCtx.lineWidth =
+    2;
+
+
+  pCtx.beginPath();
+
+  pCtx.moveTo(
+    x,
+    0
+  );
+
+  pCtx.lineTo(
+    x,
+    paintCanvas.height
+  );
+
+  pCtx.stroke();
+
+
+  pCtx.restore();
+
+}
+
+
+/* ==================================================
+   ANIMATION
+================================================== */
+
+function animatePlay() {
+
+  if (!currentSource)
+    return;
+
+
+  const elapsed =
+    audioCtx.currentTime -
+    playStartedAt;
+
+
+  const progress =
+    Math.min(
+      1,
+      elapsed /
+      playDuration
+    );
+
+
+  document.getElementById(
+    "play-position"
+  ).value =
+    Math.round(
+      progress * 1000
+    );
+
+
+  document.getElementById(
+    "time-val"
+  ).textContent =
+    elapsed.toFixed(1)
+    +
+    " / "
+    +
+    playDuration.toFixed(1)
+    +
+    " s";
+
+
+  drawPlayhead(
+    progress
+  );
+
+
+  if (
+    progress < 1 &&
+    !manualStop
+  ) {
+
+    animationId =
+      requestAnimationFrame(
+        animatePlay
+      );
+
+  }
+
+}
+
+
+/* ==================================================
+   STOP
+================================================== */
+
+function stopAudio(
+  update = true
+) {
+
+  manualStop = true;
+
+
+  if (currentSource) {
+
+    try {
+
+      currentSource.stop();
+
+    } catch(e) {}
+
+    currentSource = null;
+
+  }
+
+
+  if (animationId) {
+
+    cancelAnimationFrame(
+      animationId
+    );
+
+  }
+
+
+  animationId = null;
+
+
+  document.getElementById(
+    "play-position"
+  ).value = 0;
+
+
+  document.getElementById(
+    "time-val"
+  ).textContent =
+    "0.0 / 0.0 s";
+
+
+  drawPlayhead(-1);
+
+
+  if (update) {
+
+    document.getElementById(
+      "audio-indicator"
+    ).textContent =
+      "AUDIO : PRÊT";
+
+
+    document.getElementById(
+      "status-bar"
+    ).textContent =
+      "■ Arrêté.";
+
+  }
+
+}
+
+
+/* ==================================================
+   PLAY
+================================================== */
+
+document.getElementById(
+  "btn-play"
+).onclick = () => {
+
+  stopAudio(false);
+
+  manualStop = false;
+
+
+  document.getElementById(
+    "status-bar"
+  ).textContent =
+    "⏳ Calcul de l’audio…";
+
+
+  document.getElementById(
+    "audio-indicator"
+  ).textContent =
+    "AUDIO : CALCUL…";
+
+
+  setTimeout(
+    () => {
+
+      try {
+
+        const buffer =
+          generateAudio();
+
+
+        currentSource =
+          audioCtx.createBufferSource();
+
+
+        currentSource.buffer =
+          buffer;
+
+
+        currentSource.connect(
+          audioCtx.destination
+        );
+
+
+        playDuration =
+          buffer.duration;
+
+
+        playStartedAt =
+          audioCtx.currentTime;
+
+
+        currentSource.onended =
+          () => {
+
+            if (
+              !manualStop
+            ) {
+
+              document.getElementById(
+                "status-bar"
+              ).textContent =
+                "✓ Lecture terminée.";
+
+
+              document.getElementById(
+                "audio-indicator"
+              ).textContent =
+                "AUDIO : PRÊT";
+
+            }
+
+            currentSource =
+              null;
+
+          };
+
+
+        currentSource.start();
+
+
+        document.getElementById(
+          "status-bar"
+        ).textContent =
+          "▶ Lecture en cours…";
+
+
+        document.getElementById(
+          "audio-indicator"
+        ).textContent =
+          "AUDIO : LECTURE";
+
+
+        animatePlay();
+
+      }
+
+
+      catch(error) {
+
+        console.error(
+          error
+        );
+
+
+        document.getElementById(
+          "status-bar"
+        ).textContent =
+          "Erreur audio : "
+          +
+          error.message;
+
+
+        document.getElementById(
+          "audio-indicator"
+        ).textContent =
+          "AUDIO : ERREUR";
+
+      }
+
+    },
+    30
+  );
+
+};
+
+
+/* ==================================================
+   STOP BUTTON
+================================================== */
+
+document.getElementById(
+  "btn-stop"
+).onclick =
+  () => stopAudio(true);
+
+
+/* ==================================================
+   DEPLACEMENT MANUEL
+================================================== */
+
+document.getElementById(
+  "play-position"
+).oninput =
+  () => {
+
+    if (!lastAudioBuffer)
+      return;
+
+
+    const progress =
+      Number(
+        document.getElementById(
+          "play-position"
+        ).value
+      ) / 1000;
+
+
+    document.getElementById(
+      "time-val"
+    ).textContent =
+      (
+        progress *
+        lastAudioBuffer.duration
+      ).toFixed(1)
+      +
+      " / "
+      +
+      lastAudioBuffer.duration.toFixed(1)
+      +
+      " s";
+
+
+    drawPlayhead(
+      progress
+    );
+
+  };
+
+
+/* ==================================================
+   SPECTROGRAMME
+================================================== */
+
+function showSpectrogram() {
+
+  if (!lastAudioBuffer)
+    lastAudioBuffer =
+      generateAudio();
+
+
+  const canvas =
+    document.getElementById(
+      "spectroCanvas"
+    );
+
+
+  const ctx =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  const rect =
+    canvas.getBoundingClientRect();
+
+
+  const dpr =
+    Math.min(
+      2,
+      window.devicePixelRatio || 1
+    );
+
+
+  canvas.width =
+    Math.max(
+      1,
+      Math.floor(
+        rect.width *
+        dpr
+      )
+    );
+
+
+  canvas.height =
+    Math.max(
+      1,
+      Math.floor(
+        rect.height *
+        dpr
+      )
+    );
+
+
+  ctx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
+
+
+  const width =
+    rect.width;
+
+  const height =
+    rect.height;
+
+
+  ctx.fillStyle =
+    "#000";
+
+
+  ctx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  const data =
+    lastAudioBuffer
+      .getChannelData(0);
+
+
+  const step =
+    Math.max(
+      1,
+      Math.floor(
+        data.length /
+        width
+      )
+    );
+
+
+  for (
+    let x = 0;
+    x < width;
+    x++
+  ) {
+
+    let energy = 0;
+
+
+    for (
+      let j = 0;
+      j < step;
+      j++
+    ) {
+
+      const value =
+        data[
+          x * step + j
+        ] || 0;
+
+
+      energy +=
+        value * value;
+
+    }
+
+
+    energy =
+      Math.min(
+        1,
+        Math.sqrt(
+          energy / step
+        ) * 2.5
+      );
+
+
+    const bar =
+      energy *
+      height;
+
+
+    ctx.fillStyle =
+      "rgb("
+      +
+      Math.floor(
+        40 +
+        energy * 215
+      )
+      +
+      ","
+      +
+      Math.floor(
+        100 +
+        energy * 130
+      )
+      +
+      ",255)";
+
+
+    ctx.fillRect(
+      x,
+      height - bar,
+      1,
+      bar
+    );
+
+  }
+
+
+  ctx.fillStyle =
+    "rgba(255,255,255,.65)";
+
+
+  ctx.font =
+    "11px sans-serif";
+
+
+  ctx.fillText(
+    "temps →",
+    width - 55,
+    height - 7
+  );
+
+}
+
+
+/* ==================================================
+   MODAL
+================================================== */
+
+document.getElementById(
+  "btn-spectrogram"
+).onclick =
+  () => {
+
+    document.getElementById(
+      "modal-spectro"
+    ).classList.add(
+      "show"
+    );
+
+
+    showSpectrogram();
+
+  };
+
+
+document.getElementById(
+  "btn-close-modal"
+).onclick =
+  () => {
+
+    document.getElementById(
+      "modal-spectro"
+    ).classList.remove(
+      "show"
+    );
+
+  };
+
+
+document.getElementById(
+  "modal-spectro"
+).onclick =
+  event => {
+
+    if (
+      event.target ===
+      document.getElementById(
+        "modal-spectro"
+      )
+    ) {
+
+      document.getElementById(
+        "modal-spectro"
+      ).classList.remove(
+        "show"
+      );
+
+    }
+
+  };
+
+
+/* ==================================================
+   PRESETS
+================================================== */
+
+const presets = {
+
+  scanner: {
+
+    analysis:"spectral",
+    scale:"free",
+    wave:"sine",
+
+    duration:4,
+
+    fmin:80,
+    fmax:4000,
+
+    bins:60,
+
+    attack:.02,
+    release:.12,
+
+    volume:.85
+
+  },
+
+
+  drawing: {
+
+    analysis:"contours",
+    scale:"free",
+    wave:"triangle",
+
+    duration:6,
+
+    fmin:120,
+    fmax:3500,
+
+    bins:45,
+
+    attack:.03,
+    release:.25,
+
+    volume:.8
+
+  },
+
+
+  cosmos: {
+
+    analysis:"mclaren",
+    scale:"free",
+    wave:"sine",
+
+    duration:12,
+
+    mclaren:110,
+
+    attack:.4,
+    release:1.2,
+
+    volume:.8
+
+  },
+
+
+  glitch: {
+
+    analysis:"spectral",
+    scale:"chromatic",
+    wave:"square",
+
+    duration:3,
+
+    fmin:150,
+    fmax:7000,
+
+    bins:90,
+
+    attack:0,
+    release:.03,
+
+    volume:.65
+
+  },
+
+
+  musical: {
+
+    analysis:"mclaren",
+    scale:"pentatonic",
+    wave:"triangle",
+
+    duration:7,
+
+    mclaren:220,
+
+    attack:.05,
+    release:.5,
+
+    volume:.8
+
+  },
+
+
+  chaos: {
+
+    analysis:"density",
+    scale:"free",
+    wave:"noise",
+
+    duration:8,
+
+    fmin:60,
+    fmax:5000,
+
+    bins:50,
+
+    attack:.01,
+    release:.4,
+
+    volume:.65
+
+  }
+
+};
+
+
+document
+  .querySelectorAll(
+    "[data-preset]"
+  )
+  .forEach(
+    button => {
+
+      button.onclick =
+        () => {
+
+          const preset =
+            presets[
+              button.dataset.preset
+            ];
+
+
+          document.getElementById(
+            "analysis-select"
+          ).value =
+            preset.analysis;
+
+
+          document.getElementById(
+            "scale-select"
+          ).value =
+            preset.scale;
+
+
+          document.getElementById(
+            "wave-select"
+          ).value =
+            preset.wave;
+
+
+          if (
+            preset.duration != null
+          )
+            document.getElementById(
+              "duration"
+            ).value =
+              preset.duration;
+
+
+          if (
+            preset.fmin != null
+          )
+            document.getElementById(
+              "fmin"
+            ).value =
+              preset.fmin;
+
+
+          if (
+            preset.fmax != null
+          )
+            document.getElementById(
+              "fmax"
+            ).value =
+              preset.fmax;
+
+
+          if (
+            preset.bins != null
+          )
+            document.getElementById(
+              "nbins"
+            ).value =
+              preset.bins;
+
+
+          if (
+            preset.mclaren != null
+          )
+            document.getElementById(
+              "mclaren-freq"
+            ).value =
+              preset.mclaren;
+
+
+          if (
+            preset.attack != null
+          )
+            document.getElementById(
+              "attack"
+            ).value =
+              preset.attack;
+
+
+          if (
+            preset.release != null
+          )
+            document.getElementById(
+              "release"
+            ).value =
+              preset.release;
+
+
+          if (
+            preset.volume != null
+          )
+            document.getElementById(
+              "volume"
+            ).value =
+              preset.volume;
+
+
+          updateLabels();
+
+
+          document.getElementById(
+            "status-bar"
+          ).textContent =
+            "Preset « "
+            +
+            button.textContent.trim()
+            +
+            " » chargé.";
+
+        };
+
+    }
+  );
+
+
+/* ==================================================
+   CHANGEMENT INTERPRETATION
+================================================== */
+
+document.getElementById(
+  "analysis-select"
+).onchange =
+  () => {
+
+    document.getElementById(
+      "status-bar"
+    ).textContent =
+      "Mode « "
+      +
+      document.getElementById(
+        "analysis-select"
+      ).selectedOptions[0].text
+      +
+      " ».";
+
+  };
+
+
+document.getElementById(
+  "scale-select"
+).onchange =
+  () => {
+
+    document.getElementById(
+      "status-bar"
+    ).textContent =
+      "Gamme : "
+      +
+      document.getElementById(
+        "scale-select"
+      ).selectedOptions[0].text
+      +
+      ".";
+
+  };
+
+
+/* ==================================================
+   REDIMENSIONNEMENT
+================================================== */
+
+window.addEventListener(
+  "resize",
+  () => {
+
+    const modal =
+      document.getElementById(
+        "modal-spectro"
+      );
+
+
+    if (
+      modal.classList.contains(
+        "show"
+      )
+    ) {
+
+      showSpectrogram();
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>
