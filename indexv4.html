@@ -1,412 +1,352 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Dessin Sonore — V3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dessin Sonore V3.1</title>
 
 <style>
 * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
 }
 
-html, body {
+html,
+body {
+    margin: 0;
+    padding: 0;
     width: 100%;
-    min-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111;
+    color: #eee;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #181818;
-    color: #dedede;
+    display: flex;
+    flex-direction: column;
 }
 
 /* =========================================================
    HEADER
-========================================================= */
+   ========================================================= */
 
 header {
-    height: 54px;
-    background: #202020;
-    border-bottom: 1px solid #383838;
+    height: 58px;
+    flex: 0 0 58px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 18px;
+    background: #181818;
+    border-bottom: 1px solid #333;
 }
 
 header h1 {
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: 1.5px;
-    color: #f2f2f2;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
 }
 
-.audio-state {
+.audio-status {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
-    letter-spacing: 1px;
+    font-size: 12px;
     color: #aaa;
 }
 
 .audio-dot {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: #777;
+    background: #555;
 }
 
-.audio-dot.ready {
-    background: #6eaa78;
-}
-
-.audio-dot.playing {
-    background: #4d9bc8;
-    box-shadow: 0 0 8px rgba(77,155,200,.6);
+.audio-dot.active {
+    background: #5fd18b;
+    box-shadow: 0 0 8px rgba(95,209,139,.8);
 }
 
 /* =========================================================
    LAYOUT
-========================================================= */
+   ========================================================= */
 
-.main-layout {
+.main {
+    flex: 1;
+    min-height: 0;
     display: flex;
-    flex-direction: column;
-    min-height: calc(100vh - 54px);
+    overflow: hidden;
 }
 
 .workspace {
     flex: 1;
     min-width: 0;
-    padding: 12px;
-    background: #121212;
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    gap: 12px;
 }
 
 .sidebar {
-    background: #202020;
-    border-top: 1px solid #353535;
-    padding: 16px;
-}
-
-@media (min-width: 900px) {
-
-    .main-layout {
-        flex-direction: row;
-        height: calc(100vh - 54px);
-    }
-
-    .workspace {
-        height: 100%;
-    }
-
-    .sidebar {
-        width: 350px;
-        min-width: 350px;
-        height: 100%;
-        overflow-y: auto;
-        border-top: none;
-        border-left: 1px solid #353535;
-    }
+    width: 330px;
+    flex: 0 0 330px;
+    overflow-y: auto;
+    padding: 14px;
+    background: #181818;
+    border-left: 1px solid #333;
 }
 
 /* =========================================================
-   DRAWING AREA
-========================================================= */
+   CANVAS
+   ========================================================= */
 
-.canvas-container {
-    height: 100%;
-    min-height: 420px;
-    background: #050505;
-    border: 1px solid #383838;
-    border-radius: 7px;
-    overflow: hidden;
+.canvas-card {
+    flex: 1;
+    min-height: 0;
+    background: #202020;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    position: relative;
+    overflow: hidden;
 }
+
+.canvas-wrapper {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+canvas#paintCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
 
 .toolbar {
-    min-height: 48px;
-    padding: 7px 10px;
-    background: #242424;
-    border-bottom: 1px solid #373737;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
+    padding: 9px 2px 0;
 }
 
-.brush-control {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 170px;
-}
-
-.toolbar label {
-    font-size: 12px;
-    color: #aaa;
-    white-space: nowrap;
-}
-
-.toolbar input[type="range"] {
-    flex: 1;
-}
-
-#brush-val {
-    width: 24px;
-    text-align: right;
-    color: #ccc;
-    font-size: 12px;
-}
-
-canvas.paint-area {
-    width: 100%;
-    height: 100%;
-    flex: 1;
-    display: block;
-    background: white;
-    touch-action: none;
-    cursor: crosshair;
-}
-
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-button {
-    font-family: inherit;
-}
-
-.action-btn {
-    border: 1px solid #484848;
-    border-radius: 5px;
-    padding: 9px 11px;
-    background: #303030;
-    color: #eee;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background .15s, border-color .15s;
-}
-
-.action-btn:hover {
-    background: #3a3a3a;
-    border-color: #5a5a5a;
-}
-
-.action-btn:active {
-    transform: translateY(1px);
-}
-
-.action-btn:disabled {
-    opacity: .35;
-    cursor: default;
-}
-
-.primary {
-    background: #315f3a;
-    border-color: #487b52;
-}
-
-.primary:hover {
-    background: #397044;
-}
-
-.danger {
-    background: #653737;
-    border-color: #824848;
-}
-
-.secondary {
-    background: #2d5068;
-    border-color: #416d89;
-}
-
-.small-btn {
-    padding: 7px 9px;
-    font-size: 11px;
-}
-
-/* =========================================================
-   SECTIONS
-========================================================= */
-
-.section {
-    margin-bottom: 22px;
-}
-
-.section-title {
-    color: #8db5cc;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding-bottom: 7px;
-    margin-bottom: 11px;
-    border-bottom: 1px solid #383838;
-}
-
-.control {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-bottom: 12px;
-}
-
-label {
-    color: #aaa;
-    font-size: 12px;
-}
-
-.value {
-    float: right;
-    color: #ddd;
-    font-variant-numeric: tabular-nums;
-}
-
-.grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
-}
-
-/* =========================================================
-   INPUTS
-========================================================= */
-
-input[type="range"] {
-    width: 100%;
-    accent-color: #6999b5;
-    height: 24px;
-}
-
-input[type="number"],
-select {
-    width: 100%;
-    padding: 9px 10px;
-    background: #303030;
-    color: #eee;
-    border: 1px solid #494949;
-    border-radius: 5px;
-    font-size: 13px;
-    outline: none;
-}
-
-input[type="number"]:focus,
-select:focus {
-    border-color: #6b92a8;
-}
-
-.checkbox-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.checkbox-label {
+.toolbar-group {
     display: flex;
     align-items: center;
     gap: 7px;
+}
+
+.toolbar label {
+    font-size: 11px;
     color: #aaa;
+}
+
+input[type="range"] {
+    accent-color: #ddd;
+}
+
+.toolbar input[type="range"] {
+    width: 110px;
+}
+
+button {
+    border: 1px solid #444;
+    background: #292929;
+    color: #eee;
+    border-radius: 5px;
+    padding: 7px 11px;
+    cursor: pointer;
     font-size: 12px;
 }
 
-.checkbox-label input {
-    width: 17px;
-    height: 17px;
-    accent-color: #6999b5;
+button:hover {
+    background: #353535;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button.primary {
+    background: #eee;
+    color: #111;
+    border-color: #eee;
+}
+
+button.primary:hover {
+    background: #fff;
+}
+
+button.danger {
+    border-color: #754444;
 }
 
 /* =========================================================
-   ENGINE DESCRIPTION
-========================================================= */
+   PLAYBACK
+   ========================================================= */
 
-.engine-description {
-    min-height: 40px;
-    margin-top: 7px;
-    padding: 8px 9px;
-    background: #292929;
-    border-left: 2px solid #496b7c;
-    color: #999;
+.play-strip {
+    height: 36px;
+    flex: 0 0 36px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.play-strip input[type="range"] {
+    flex: 1;
+}
+
+.time-value {
+    width: 52px;
+    text-align: right;
+    color: #aaa;
     font-size: 11px;
-    line-height: 1.45;
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.section {
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #303030;
+}
+
+.section:last-child {
+    border-bottom: none;
+}
+
+.section-title {
+    font-size: 11px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.mode-tabs {
+    display: flex;
+    gap: 5px;
+}
+
+.mode-tab {
+    flex: 1;
+    padding: 7px;
+    text-align: center;
+    border: 1px solid #3d3d3d;
+    background: #222;
+    color: #aaa;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.mode-tab.active {
+    color: #111;
+    background: #eee;
+    border-color: #eee;
+}
+
+.control {
+    margin-bottom: 12px;
+}
+
+.control:last-child {
+    margin-bottom: 0;
+}
+
+.control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.control-row label {
+    font-size: 12px;
+    color: #ccc;
+}
+
+.control-value {
+    color: #888;
+    font-size: 11px;
+    min-width: 45px;
+    text-align: right;
+}
+
+.control input[type="range"] {
+    width: 100%;
+}
+
+select {
+    width: 100%;
+    padding: 7px;
+    background: #222;
+    color: #eee;
+    border: 1px solid #444;
+    border-radius: 5px;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 9px;
+}
+
+.checkbox-row input {
+    accent-color: #eee;
 }
 
 /* =========================================================
    ACTIONS
-========================================================= */
+   ========================================================= */
 
-.action-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 7px;
-}
-
-.export-grid {
+.actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 7px;
-    margin-top: 7px;
+}
+
+.actions button:last-child {
+    grid-column: 1 / -1;
 }
 
 /* =========================================================
-   STATUS
-========================================================= */
-
-.status {
-    color: #888;
-    font-size: 11px;
-    line-height: 1.5;
-    min-height: 18px;
-}
-
-.progress-container {
-    height: 2px;
-    background: #333;
-    margin-top: 7px;
-    overflow: hidden;
-}
-
-.progress {
-    height: 100%;
-    width: 0%;
-    background: #6b96ad;
-    transition: width .1s linear;
-}
-
-/* =========================================================
-   SCAN LINE
-========================================================= */
-
-.scan-line {
-    position: absolute;
-    top: 48px;
-    bottom: 0;
-    width: 1px;
-    background: rgba(60,130,170,.75);
-    box-shadow: 0 0 8px rgba(60,130,170,.5);
-    pointer-events: none;
-    display: none;
-}
-
-/* =========================================================
-   MODAL
-========================================================= */
+   MODAL SPECTROGRAMME
+   ========================================================= */
 
 .modal {
-    display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.88);
-    z-index: 100;
+    background: rgba(0,0,0,.82);
+    display: none;
     align-items: center;
     justify-content: center;
+    z-index: 1000;
     padding: 20px;
 }
 
@@ -415,55 +355,90 @@ select:focus {
 }
 
 .modal-content {
-    width: 100%;
-    max-width: 900px;
-    background: #202020;
-    border: 1px solid #454545;
-    border-radius: 7px;
-    padding: 15px;
+    width: min(1000px, 96vw);
+    height: min(700px, 90vh);
+    background: #191919;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .modal-header h2 {
-    font-size: 14px;
-    font-weight: 500;
+    margin: 0;
+    font-size: 15px;
+    font-weight: normal;
 }
 
-#spectroCanvas {
+#spectrogramCanvas {
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    height: 300px;
-    display: block;
     background: #000;
+}
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status {
+    position: fixed;
+    left: 14px;
+    bottom: 10px;
+    padding: 5px 9px;
+    background: rgba(20,20,20,.85);
     border: 1px solid #333;
+    border-radius: 4px;
+    color: #999;
+    font-size: 10px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s;
+    z-index: 50;
+}
+
+.status.visible {
+    opacity: 1;
 }
 
 /* =========================================================
    MOBILE
-========================================================= */
+   ========================================================= */
 
-@media (max-width: 899px) {
+@media (max-width: 850px) {
 
-    .canvas-container {
-        height: 55vh;
-        min-height: 320px;
+    html,
+    body {
+        overflow: auto;
+    }
+
+    .main {
+        flex-direction: column;
+        overflow: visible;
     }
 
     .workspace {
-        min-height: 0;
+        height: 65vh;
+        min-height: 420px;
     }
 
-    .action-btn {
-        min-height: 36px;
+    .sidebar {
+        width: 100%;
+        flex: none;
+        border-left: none;
+        border-top: 1px solid #333;
     }
 
-    header h1 {
-        font-size: 13px;
+    .canvas-card {
+        min-height: 290px;
     }
 }
 </style>
@@ -472,37 +447,51 @@ select:focus {
 <body>
 
 <header>
-    <h1>DESSIN SONORE — V3</h1>
+    <h1>DESSIN SONORE V3.1</h1>
 
-    <div class="audio-state">
-        <span class="audio-dot ready" id="audio-dot"></span>
-        <span id="audio-indicator">AUDIO : PRÊT</span>
+    <div class="audio-status">
+        <span class="audio-dot" id="audio-dot"></span>
+        <span id="audio-status-text">Audio arrêté</span>
     </div>
 </header>
 
 
-<div class="main-layout">
+<div class="main">
 
-    <main class="workspace">
+    <!-- =====================================================
+         ESPACE DE TRAVAIL
+         ===================================================== -->
 
-        <div class="canvas-container">
+    <section class="workspace">
+
+        <div class="canvas-card">
+
+            <div class="canvas-wrapper">
+                <canvas
+                    id="paintCanvas"
+                    width="800"
+                    height="600">
+                </canvas>
+            </div>
 
             <div class="toolbar">
 
-                <div class="brush-control">
-
-                    <label>Épaisseur</label>
+                <div class="toolbar-group">
+                    <label for="brush-size">Épaisseur</label>
 
                     <input
-                        type="range"
                         id="brush-size"
+                        type="range"
                         min="1"
-                        max="40"
-                        value="6">
+                        max="60"
+                        value="5">
 
-                    <span id="brush-val">6</span>
-
+                    <span id="brush-size-value">5</span>
                 </div>
+
+                <button id="btn-browse">
+                    Importer
+                </button>
 
                 <input
                     type="file"
@@ -511,38 +500,501 @@ select:focus {
                     hidden>
 
                 <button
-                    type="button"
-                    class="action-btn secondary"
-                    id="btn-browse">
-                    Importer
-                </button>
-
-                <button
-                    type="button"
-                    class="action-btn small-btn"
-                    id="btn-undo">
-                    ↶
-                </button>
-
-                <button
-                    type="button"
-                    class="action-btn small-btn"
-                    id="btn-redo">
-                    ↷
-                </button>
-
-                <button
-                    type="button"
-                    class="action-btn danger"
-                    id="btn-clear">
+                    id="btn-clear"
+                    class="danger">
                     Effacer
                 </button>
 
+                <button id="btn-reset">
+                    Réinitialiser
+                </button>
+
+            </div>
+        </div>
+
+
+        <div class="play-strip">
+
+            <button
+                id="btn-play"
+                class="primary">
+                ▶ Lire
+            </button>
+
+            <button id="btn-stop">
+                ■
+            </button>
+
+            <input
+                id="play-position"
+                type="range"
+                min="0"
+                max="1000"
+                value="0">
+
+            <div
+                class="time-value"
+                id="time-val">
+                0:00
             </div>
 
-            <canvas
-                id="paintCanvas"
-                width="800"
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <aside class="sidebar">
+
+        <!-- MODE -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Mode
+            </div>
+
+            <div class="mode-tabs">
+
+                <div
+                    class="mode-tab active"
+                    data-mode="draw">
+                    Dessin
+                </div>
+
+                <div
+                    class="mode-tab"
+                    data-mode="analyse">
+                    Analyse
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- IMAGE -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Image
+            </div>
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="contrast">
+                        Contraste
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="contrast-value">
+                        100
+                    </span>
+                </div>
+
+                <input
+                    id="contrast"
+                    type="range"
+                    min="0"
+                    max="200"
+                    value="100">
+
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="brightness">
+                        Luminosité
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="brightness-value">
+                        0
+                    </span>
+                </div>
+
+                <input
+                    id="brightness"
+                    type="range"
+                    min="-100"
+                    max="100"
+                    value="0">
+
+            </div>
+
+
+            <label class="checkbox-row">
+
+                <input
+                    id="invert"
+                    type="checkbox">
+
+                Inverser noir / blanc
+
+            </label>
+
+
+            <label class="checkbox-row">
+
+                <input
+                    id="invert-frequency"
+                    type="checkbox">
+
+                Inverser les fréquences
+
+            </label>
+
+        </div>
+
+
+        <!-- INTERPRETATION -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Interprétation
+            </div>
+
+            <div class="control">
+
+                <label for="interpretation">
+                    Lecture du dessin
+                </label>
+
+                <select id="interpretation">
+
+                    <option value="spectral">
+                        Pixels — spectral
+                    </option>
+
+                    <option value="contours">
+                        Contours — spectral
+                    </option>
+
+                    <option value="mclaren">
+                        McLaren — trajectoire
+                    </option>
+
+                    <option value="density">
+                        Masse — densité
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="control">
+
+                <label for="scale">
+                    Échelle
+                </label>
+
+                <select id="scale">
+
+                    <option value="free">
+                        Libre
+                    </option>
+
+                    <option value="chromatic">
+                        Chromatique
+                    </option>
+
+                    <option value="major">
+                        Majeure
+                    </option>
+
+                    <option value="minor">
+                        Mineure
+                    </option>
+
+                    <option value="pentatonic">
+                        Pentatonique
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- SON -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Son
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="duration">
+                        Durée
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="duration-value">
+                        10 s
+                    </span>
+                </div>
+
+                <input
+                    id="duration"
+                    type="range"
+                    min="1"
+                    max="30"
+                    step="1"
+                    value="10">
+
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="volume">
+                        Volume
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="volume-value">
+                        70 %
+                    </span>
+                </div>
+
+                <input
+                    id="volume"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="70">
+
+            </div>
+
+
+            <div class="control">
+
+                <label for="waveform">
+                    Forme d'onde
+                </label>
+
+                <select id="waveform">
+
+                    <option value="sine">
+                        Sinusoïde
+                    </option>
+
+                    <option value="triangle">
+                        Triangle
+                    </option>
+
+                    <option value="sawtooth">
+                        Dent de scie
+                    </option>
+
+                    <option value="square">
+                        Carré
+                    </option>
+
+                    <option value="noise">
+                        Bruit
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="attack">
+                        Attaque
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="attack-value">
+                        0.02 s
+                    </span>
+                </div>
+
+                <input
+                    id="attack"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value="0.02">
+
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="release">
+                        Relâchement
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="release-value">
+                        0.5 s
+                    </span>
+                </div>
+
+                <input
+                    id="release"
+                    type="range"
+                    min="0.05"
+                    max="3"
+                    step="0.05"
+                    value="0.5">
+
+            </div>
+
+        </div>
+
+
+        <!-- AVANCÉ -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Avancé
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="fmin">
+                        Fréquence min.
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="fmin-value">
+                        80 Hz
+                    </span>
+                </div>
+
+                <input
+                    id="fmin"
+                    type="range"
+                    min="20"
+                    max="1000"
+                    step="1"
+                    value="80">
+
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="fmax">
+                        Fréquence max.
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="fmax-value">
+                        4000 Hz
+                    </span>
+                </div>
+
+                <input
+                    id="fmax"
+                    type="range"
+                    min="500"
+                    max="12000"
+                    step="10"
+                    value="4000">
+
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="bins">
+                        Résolution
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="bins-value">
+                        32
+                    </span>
+                </div>
+
+                <input
+                    id="bins"
+                    type="range"
+                    min="4"
+                    max="128"
+                    step="1"
+                    value="32">
+
+            </div>
+
+
+            <div class="control">
+
+                <div class="control-row">
+                    <label for="mclaren-frequency">
+                        McLaren
+                    </label>
+
+                    <span
+                        class="control-value"
+                        id="mclaren-frequency-value">
+                        440 Hz
+                    </span>
+                </div>
+
+                <input
+                    id="mclaren-frequency"
+                    type="range"
+                    min="50"
+                    max="1000"
+                    step="1"
+                    value="440">
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Actions
+            </div>
+
+            <div class="actions">
+
+                <button
+                    id="btn-play-side"
+                    class width="800"
                 height="600"
                 class="paint-area">
             </canvas>
