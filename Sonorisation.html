@@ -1,1017 +1,722 @@
+```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-
 <meta name="viewport"
-      content="width=device-width,
-               initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no">
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0, user-scalable=no">
 
-<title>Dessin Sonore — V3.3</title>
+<title>Dessin Sonore — V3.4</title>
 
 <style>
-
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html,
 body {
-    margin: 0;
-    padding: 0;
-
-    width: 100%;
-    height: 100%;
-
-    overflow: hidden;
-
-    background: #111;
-    color: #eee;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #111;
+  color: #eee;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
-    overscroll-behavior: none;
+  overscroll-behavior: none;
 }
 
 header {
-    height: 58px;
-
-    display: flex;
-    align-items: center;
-
-    padding: 0 18px;
-
-    background: #181818;
-
-    border-bottom:
-        1px solid #333;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  background: #181818;
+  border-bottom: 1px solid #333;
 }
 
 header h1 {
-    margin: 0;
-
-    font-size: 20px;
-    font-weight: 500;
-
-    letter-spacing: .04em;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: .04em;
 }
 
 header span {
-    margin-left: 12px;
-
-    color: #888;
-
-    font-size: 12px;
+  margin-left: 12px;
+  color: #888;
+  font-size: 12px;
 }
 
 .app {
-    height:
-        calc(100vh - 58px);
-
-    display: flex;
-    flex-direction: column;
+  height: calc(100vh - 58px);
+  display: flex;
+  flex-direction: column;
 }
 
 .workspace {
-    flex: 1;
-
-    min-height: 0;
-
-    display: flex;
-
-    gap: 12px;
-
-    padding: 12px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
 }
 
 .canvas-wrapper {
-    position: relative;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 
-    flex: 1;
+  background: #202020;
+  border: 1px solid #363636;
+  border-radius: 8px;
 
-    min-width: 0;
-    min-height: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    overflow: hidden;
-
-    background: #202020;
-
-    border:
-        1px solid #363636;
-
-    border-radius: 8px;
-
-    touch-action: none;
-    -ms-touch-action: none;
+  touch-action: none;
+  -ms-touch-action: none;
 }
 
 #paintCanvas {
+  position: absolute;
+  left: 0;
+  top: 0;
 
-    position: absolute;
+  width: 100%;
+  height: 100%;
 
-    inset: 0;
+  display: block;
 
-    width: 100%;
-    height: 100%;
+  background: white;
+  cursor: crosshair;
 
-    display: block;
+  touch-action: none;
+  -ms-touch-action: none;
 
-    background: white;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 
-    cursor: crosshair;
-
-    touch-action: none;
-    -ms-touch-action: none;
-
-    user-select: none;
-    -webkit-user-select: none;
-
-    -webkit-touch-callout: none;
-
-    -webkit-tap-highlight-color:
-        transparent;
-
-    z-index: 2;
+  z-index: 2;
 }
 
 .sidebar {
+  width: 310px;
+  flex-shrink: 0;
 
-    width: 310px;
+  overflow-y: auto;
+  padding: 14px;
 
-    flex-shrink: 0;
-
-    overflow-y: auto;
-
-    padding: 14px;
-
-    background: #181818;
-
-    border:
-        1px solid #333;
-
-    border-radius: 8px;
+  background: #181818;
+  border: 1px solid #333;
+  border-radius: 8px;
 }
 
 .section {
-    margin-bottom: 18px;
+  margin-bottom: 18px;
 }
 
 .section-title {
-
-    margin-bottom: 10px;
-
-    color: #888;
-
-    font-size: 11px;
-
-    text-transform: uppercase;
-
-    letter-spacing: .12em;
+  margin-bottom: 10px;
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
 }
 
 label {
-
-    display: block;
-
-    margin: 9px 0 4px;
-
-    color: #aaa;
-
-    font-size: 12px;
+  display: block;
+  margin: 9px 0 4px;
+  color: #aaa;
+  font-size: 12px;
 }
 
 select,
 input[type="number"] {
+  width: 100%;
+  height: 34px;
+  padding: 0 8px;
 
-    width: 100%;
+  background: #252525;
+  color: #eee;
 
-    height: 34px;
-
-    padding: 0 8px;
-
-    background: #252525;
-
-    color: #eee;
-
-    border:
-        1px solid #444;
-
-    border-radius: 5px;
+  border: 1px solid #444;
+  border-radius: 5px;
 }
 
 input[type="range"] {
-    width: 100%;
-}
-
-input[type="range"] {
-    accent-color: #ddd;
+  width: 100%;
+  accent-color: #ddd;
 }
 
 .value {
-    float: right;
-
-    color: #bbb;
+  float: right;
+  color: #bbb;
 }
 
 .buttons {
-
-    display: grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
-    gap: 7px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
 }
 
 button {
+  min-height: 38px;
 
-    min-height: 38px;
+  border: 1px solid #444;
+  border-radius: 5px;
 
-    border:
-        1px solid #444;
+  background: #292929;
+  color: #eee;
 
-    border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
 
-    background: #292929;
-
-    color: #eee;
-
-    cursor: pointer;
-
-    font-size: 12px;
+  touch-action: manipulation;
 }
 
 button:hover {
-    background: #353535;
+  background: #353535;
 }
 
 button:active {
-    background: #444;
+  background: #444;
 }
 
 button.primary {
-
-    background: #ddd;
-
-    color: #111;
-
-    border-color: #ddd;
+  background: #ddd;
+  color: #111;
+  border-color: #ddd;
 }
 
 button.primary:hover {
-    background: white;
+  background: white;
 }
 
 button.danger {
-    color: #ffb0b0;
+  color: #ffb0b0;
 }
 
 .file-label {
+  display: block;
+  padding: 10px;
 
-    display: block;
+  text-align: center;
 
-    padding: 10px;
+  border: 1px dashed #555;
+  border-radius: 5px;
 
-    text-align: center;
+  color: #bbb;
+  font-size: 12px;
 
-    border:
-        1px dashed #555;
-
-    border-radius: 5px;
-
-    color: #bbb;
-
-    font-size: 12px;
-
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .file-label:hover {
-
-    border-color: #888;
-
-    color: white;
+  border-color: #888;
+  color: white;
 }
 
 #imageInput {
-    display: none;
+  display: none;
 }
 
 .statusbar {
+  height: 38px;
+  flex-shrink: 0;
 
-    height: 38px;
+  display: flex;
+  align-items: center;
 
-    flex-shrink: 0;
+  padding: 0 14px;
 
-    display: flex;
+  background: #181818;
+  border-top: 1px solid #333;
 
-    align-items: center;
-
-    padding: 0 14px;
-
-    background: #181818;
-
-    border-top:
-        1px solid #333;
-
-    color: #777;
-
-    font-size: 11px;
+  color: #777;
+  font-size: 11px;
 }
 
 .statusbar strong {
-
-    color: #aaa;
-
-    font-weight: normal;
+  color: #aaa;
+  font-weight: normal;
 }
 
 .modal {
+  position: fixed;
+  inset: 0;
 
-    position: fixed;
+  display: none;
+  align-items: center;
+  justify-content: center;
 
-    inset: 0;
+  background: rgba(0,0,0,.82);
 
-    display: none;
-
-    align-items: center;
-    justify-content: center;
-
-    background:
-        rgba(0,0,0,.82);
-
-    z-index: 100;
+  z-index: 100;
 }
 
 .modal.visible {
-    display: flex;
+  display: flex;
 }
 
 .modal-content {
+  width: min(900px,94vw);
+  max-height: 92vh;
 
-    width:
-        min(900px,94vw);
+  padding: 16px;
 
-    max-height: 92vh;
+  background: #181818;
+  border: 1px solid #444;
+  border-radius: 8px;
 
-    padding: 16px;
-
-    background: #181818;
-
-    border:
-        1px solid #444;
-
-    border-radius: 8px;
-
-    overflow: auto;
+  overflow: auto;
 }
 
 .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .modal-header h2 {
-
-    margin: 0;
-
-    font-size: 15px;
-
-    font-weight: normal;
+  margin: 0;
+  font-size: 15px;
+  font-weight: normal;
 }
 
 #spectrogramCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: black;
+}
 
-    display: block;
+@media (max-width: 800px) {
 
+  header {
+    height: 50px;
+    padding: 0 12px;
+  }
+
+  header h1 {
+    font-size: 17px;
+  }
+
+  header span {
+    font-size: 10px;
+  }
+
+  .app {
+    height: calc(100vh - 50px);
+  }
+
+  .workspace {
+    flex-direction: column;
+    padding: 7px;
+    gap: 7px;
+  }
+
+  .canvas-wrapper {
+    flex: none;
     width: 100%;
-    height: auto;
+    height: 52vh;
+    min-height: 280px;
+  }
 
-    background: black;
+  .sidebar {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    padding: 11px;
+  }
+
+  select,
+  input[type="number"] {
+    height: 38px;
+    font-size: 14px;
+  }
+
+  button {
+    min-height: 42px;
+    font-size: 13px;
+  }
+
+  .statusbar {
+    height: 32px;
+  }
 }
 
-@media (max-width:800px) {
+@media (max-height: 650px) and (max-width: 800px) {
 
-    header {
-        height: 50px;
-        padding: 0 12px;
-    }
-
-    header h1 {
-        font-size: 17px;
-    }
-
-    header span {
-        font-size: 10px;
-    }
-
-    .app {
-        height:
-            calc(100vh - 50px);
-    }
-
-    .workspace {
-
-        flex-direction: column;
-
-        padding: 7px;
-
-        gap: 7px;
-    }
-
-    .canvas-wrapper {
-
-        flex: none;
-
-        width: 100%;
-
-        height: 52vh;
-
-        min-height: 280px;
-    }
-
-    .sidebar {
-
-        width: 100%;
-
-        flex: 1;
-
-        min-height: 0;
-
-        padding: 11px;
-    }
-
-    select,
-    input[type="number"] {
-
-        height: 38px;
-
-        font-size: 14px;
-    }
-
-    button {
-
-        min-height: 42px;
-
-        font-size: 13px;
-    }
-
-    .statusbar {
-        height: 32px;
-    }
+  .canvas-wrapper {
+    height: 45vh;
+    min-height: 230px;
+  }
 }
-
-@media (max-height:650px)
-       and (max-width:800px) {
-
-    .canvas-wrapper {
-
-        height: 45vh;
-
-        min-height: 230px;
-    }
-}
-
 </style>
 </head>
 
-
 <body>
 
-
 <header>
-
-    <h1>
-        Dessin Sonore
-    </h1>
-
-    <span>
-        V3.3 — instrument d'exploration
-    </span>
-
+  <h1>Dessin Sonore</h1>
+  <span>V3.4 — instrument d'exploration</span>
 </header>
-
 
 <div class="app">
 
+  <div class="workspace">
 
-<div class="workspace">
+    <div class="canvas-wrapper">
+      <canvas id="paintCanvas"
+              width="800"
+              height="600">
+      </canvas>
+    </div>
+
+    <aside class="sidebar">
+
+      <div class="section">
+
+        <div class="section-title">
+          Image
+        </div>
+
+        <label class="file-label" for="imageInput">
+          Importer une image
+        </label>
+
+        <input
+          id="imageInput"
+          type="file"
+          accept="image/*">
+
+      </div>
 
 
-<div class="canvas-wrapper">
+      <div class="section">
+
+        <div class="section-title">
+          Interprétation
+        </div>
+
+        <label for="interpretation">
+          Mode
+        </label>
+
+        <select id="interpretation">
+          <option value="spectral">
+            Pixels — spectral
+          </option>
+
+          <option value="contours">
+            Contours — spectral
+          </option>
+
+          <option value="mclaren">
+            McLaren — trajectoire
+          </option>
+
+          <option value="density">
+            Masse — champ
+          </option>
+        </select>
+
+      </div>
 
 
-<canvas
-    id="paintCanvas"
-    width="800"
-    height="600">
-</canvas>
+      <div class="section">
 
+        <div class="section-title">
+          Image / matière
+        </div>
+
+        <label>
+          Contraste
+          <span class="value" id="contrastValue">0</span>
+        </label>
+
+        <input
+          id="contrast"
+          type="range"
+          min="-100"
+          max="100"
+          value="0">
+
+
+        <label>
+          Luminosité
+          <span class="value" id="brightnessValue">0</span>
+        </label>
+
+        <input
+          id="brightness"
+          type="range"
+          min="-100"
+          max="100"
+          value="0">
+
+
+        <label>
+          Noir et blanc
+        </label>
+
+        <select id="bwMode">
+          <option value="normal">Normal</option>
+          <option value="bw">Noir et blanc</option>
+        </select>
+
+
+        <label>
+          Inversion
+        </label>
+
+        <select id="invert">
+          <option value="0">Normale</option>
+          <option value="1">Inversée</option>
+        </select>
+
+
+        <label>
+          Inversion des fréquences
+        </label>
+
+        <select id="invertFrequency">
+          <option value="0">Grave → aigu</option>
+          <option value="1">Aigu → grave</option>
+        </select>
+
+      </div>
+
+
+      <div class="section">
+
+        <div class="section-title">
+          Hauteurs
+        </div>
+
+        <label>
+          Échelle musicale
+        </label>
+
+        <select id="scale">
+          <option value="free">Libre</option>
+          <option value="chromatic">Chromatique</option>
+          <option value="major">Majeure</option>
+          <option value="minor">Mineure</option>
+          <option value="pentatonic">Pentatonique</option>
+        </select>
+
+      </div>
+
+
+      <div class="section">
+
+        <div class="section-title">
+          Son
+        </div>
+
+        <label>
+          Durée
+          <span class="value" id="durationValue">10 s</span>
+        </label>
+
+        <input
+          id="duration"
+          type="range"
+          min="1"
+          max="30"
+          value="10">
+
+
+        <label>
+          Volume
+          <span class="value" id="volumeValue">50 %</span>
+        </label>
+
+        <input
+          id="volume"
+          type="range"
+          min="0"
+          max="100"
+          value="50">
+
+
+        <label>
+          Forme d'onde
+        </label>
+
+        <select id="waveform">
+          <option value="sine">Sinusoïde</option>
+          <option value="triangle">Triangle</option>
+          <option value="sawtooth">Dent de scie</option>
+          <option value="square">Carrée</option>
+        </select>
+
+
+        <label>
+          Attaque
+          <span class="value" id="attackValue">0.05 s</span>
+        </label>
+
+        <input
+          id="attack"
+          type="range"
+          min="0"
+          max="100"
+          value="5">
+
+
+        <label>
+          Relâchement
+          <span class="value" id="releaseValue">0.20 s</span>
+        </label>
+
+        <input
+          id="release"
+          type="range"
+          min="0"
+          max="200"
+          value="20">
+
+      </div>
+
+
+      <div class="section">
+
+        <div class="section-title">
+          Exploration avancée
+        </div>
+
+        <label>
+          Fréquence minimale
+        </label>
+
+        <input
+          id="fmin"
+          type="number"
+          min="20"
+          max="20000"
+          value="100">
+
+
+        <label>
+          Fréquence maximale
+        </label>
+
+        <input
+          id="fmax"
+          type="number"
+          min="100"
+          max="20000"
+          value="4000">
+
+
+        <label>
+          Nombre de bandes
+        </label>
+
+        <input
+          id="bins"
+          type="number"
+          min="4"
+          max="200"
+          value="64">
+
+
+        <label>
+          Fréquence McLaren
+        </label>
+
+        <input
+          id="mclarenFrequency"
+          type="number"
+          min="20"
+          max="20000"
+          value="440">
+
+      </div>
+
+
+      <div class="section">
+
+        <div class="section-title">
+          Écoute
+        </div>
+
+        <div class="buttons">
+
+          <button
+            id="btn-play"
+            class="primary">
+            ▶ Jouer
+          </button>
+
+          <button id="btn-stop">
+            ■ Stop
+          </button>
+
+          <button id="btn-spectrogram">
+            Spectrogramme
+          </button>
+
+          <button
+            id="btn-clear"
+            class="danger">
+            Effacer
+          </button>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+  </div>
+
+
+  <div class="statusbar">
+    <strong id="status">
+      Dessinez avec le doigt ou la souris.
+    </strong>
+  </div>
 
 </div>
 
 
-<aside class="sidebar">
+<div id="spectrogramModal" class="modal">
 
+  <div class="modal-content">
 
-<!-- IMAGE -->
+    <div class="modal-header">
 
-<div class="section">
+      <h2>Spectrogramme</h2>
 
-<div class="section-title">
-    Image
-</div>
+      <button id="closeSpectrogram">
+        Fermer
+      </button>
 
-<label
-    class="file-label"
-    for="imageInput">
+    </div>
 
-    Importer une image
+    <canvas
+      id="spectrogramCanvas"
+      width="900"
+      height="450">
+    </canvas>
 
-</label>
-
-<input
-    id="imageInput"
-    type="file"
-    accept="image/*">
-
-</div>
-
-
-<!-- INTERPRETATION -->
-
-<div class="section">
-
-<div class="section-title">
-    Interprétation
-</div>
-
-<label for="interpretation">
-    Mode
-</label>
-
-<select id="interpretation">
-
-<option value="spectral">
-    Pixels — spectral
-</option>
-
-<option value="contours">
-    Contours — spectral
-</option>
-
-<option value="mclaren">
-    McLaren — trajectoire
-</option>
-
-<option value="density">
-    Masse — champ
-</option>
-
-</select>
-
-</div>
-
-
-<!-- FILTRES -->
-
-<div class="section">
-
-<div class="section-title">
-    Image / matière
-</div>
-
-
-<label>
-
-    Contraste
-
-    <span
-        class="value"
-        id="contrastValue">
-        0
-    </span>
-
-</label>
-
-<input
-    id="contrast"
-    type="range"
-    min="-100"
-    max="100"
-    value="0">
-
-
-<label>
-
-    Luminosité
-
-    <span
-        class="value"
-        id="brightnessValue">
-        0
-    </span>
-
-</label>
-
-<input
-    id="brightness"
-    type="range"
-    min="-100"
-    max="100"
-    value="0">
-
-
-<label>
-    Noir et blanc
-</label>
-
-<select id="bwMode">
-
-<option value="normal">
-    Normal
-</option>
-
-<option value="bw">
-    Noir et blanc
-</option>
-
-</select>
-
-
-<label>
-    Inversion
-</label>
-
-<select id="invert">
-
-<option value="0">
-    Normale
-</option>
-
-<option value="1">
-    Inversée
-</option>
-
-</select>
-
-
-<label>
-    Inversion des fréquences
-</label>
-
-<select id="invertFrequency">
-
-<option value="0">
-    Grave → aigu
-</option>
-
-<option value="1">
-    Aigu → grave
-</option>
-
-</select>
-
-</div>
-
-
-<!-- ECHELLE -->
-
-<div class="section">
-
-<div class="section-title">
-    Hauteurs
-</div>
-
-<label>
-    Échelle musicale
-</label>
-
-<select id="scale">
-
-<option value="free">
-    Libre
-</option>
-
-<option value="chromatic">
-    Chromatique
-</option>
-
-<option value="major">
-    Majeure
-</option>
-
-<option value="minor">
-    Mineure
-</option>
-
-<option value="pentatonic">
-    Pentatonique
-</option>
-
-</select>
-
-</div>
-
-
-<!-- SON -->
-
-<div class="section">
-
-<div class="section-title">
-    Son
-</div>
-
-
-<label>
-
-    Durée
-
-    <span
-        class="value"
-        id="durationValue">
-        10 s
-    </span>
-
-</label>
-
-<input
-    id="duration"
-    type="range"
-    min="1"
-    max="30"
-    value="10">
-
-
-<label>
-
-    Volume
-
-    <span
-        class="value"
-        id="volumeValue">
-        50 %
-    </span>
-
-</label>
-
-<input
-    id="volume"
-    type="range"
-    min="0"
-    max="100"
-    value="50">
-
-
-<label>
-    Forme d'onde
-</label>
-
-<select id="waveform">
-
-<option value="sine">
-    Sinusoïde
-</option>
-
-<option value="triangle">
-    Triangle
-</option>
-
-<option value="sawtooth">
-    Dent de scie
-</option>
-
-<option value="square">
-    Carrée
-</option>
-
-</select>
-
-
-<label>
-
-    Attaque
-
-    <span
-        class="value"
-        id="attackValue">
-        0.05 s
-    </span>
-
-</label>
-
-<input
-    id="attack"
-    type="range"
-    min="0"
-    max="100"
-    value="5">
-
-
-<label>
-
-    Relâchement
-
-    <span
-        class="value"
-        id="releaseValue">
-        0.20 s
-    </span>
-
-</label>
-
-<input
-    id="release"
-    type="range"
-    min="0"
-    max="200"
-    value="20">
-
-</div>
-
-
-<!-- AVANCE -->
-
-<div class="section">
-
-<div class="section-title">
-    Exploration avancée
-</div>
-
-
-<label>
-    Fréquence minimale
-</label>
-
-<input
-    id="fmin"
-    type="number"
-    min="20"
-    max="20000"
-    value="100">
-
-
-<label>
-    Fréquence maximale
-</label>
-
-<input
-    id="fmax"
-    type="number"
-    min="100"
-    max="20000"
-    value="4000">
-
-
-<label>
-    Nombre de bandes
-</label>
-
-<input
-    id="bins"
-    type="number"
-    min="4"
-    max="200"
-    value="64">
-
-
-<label>
-    Fréquence McLaren
-</label>
-
-<input
-    id="mclarenFrequency"
-    type="number"
-    min="20"
-    max="20000"
-    value="440">
-
-</div>
-
-
-<!-- ACTIONS -->
-
-<div class="section">
-
-<div class="section-title">
-    Écoute
-</div>
-
-<div class="buttons">
-
-<button
-    id="btn-play"
-    class="primary">
-
-    ▶ Jouer
-
-</button>
-
-<button
-    id="btn-stop">
-
-    ■ Stop
-
-</button>
-
-<button
-    id="btn-spectrogram">
-
-    Spectrogramme
-
-</button>
-
-<button
-    id="btn-clear"
-    class="danger">
-
-    Effacer
-
-</button>
-
-</div>
-
-</div>
-
-
-</aside>
-
-
-</div>
-
-
-<div class="statusbar">
-
-<strong id="status">
-
-    Dessinez avec le doigt ou la souris.
-
-</strong>
-
-</div>
-
-
-</div>
-
-
-<!-- SPECTROGRAMME -->
-
-<div
-    id="spectrogramModal"
-    class="modal">
-
-
-<div class="modal-content">
-
-
-<div class="modal-header">
-
-<h2>
-    Spectrogramme
-</h2>
-
-<button
-    id="closeSpectrogram">
-
-    Fermer
-
-</button>
-
-</div>
-
-
-<canvas
-    id="spectrogramCanvas"
-    width="900"
-    height="450">
-</canvas>
-
-
-</div>
+  </div>
 
 </div>
 
 
 <script>
-
 "use strict";
 
 
@@ -1020,452 +725,301 @@ button.danger {
    ========================================================= */
 
 const canvas =
-    document.getElementById(
-        "paintCanvas"
-    );
+  document.getElementById("paintCanvas");
 
 const ctx =
-    canvas.getContext(
-        "2d",
-        {
-            willReadFrequently: true
-        }
-    );
+  canvas.getContext("2d", {
+    willReadFrequently: true
+  });
 
 
 const rawCanvas =
-    document.createElement(
-        "canvas"
-    );
+  document.createElement("canvas");
 
-rawCanvas.width =
-    canvas.width;
-
-rawCanvas.height =
-    canvas.height;
+rawCanvas.width = canvas.width;
+rawCanvas.height = canvas.height;
 
 
 const rawCtx =
-    rawCanvas.getContext(
-        "2d",
-        {
-            willReadFrequently: true
-        }
-    );
+  rawCanvas.getContext("2d", {
+    willReadFrequently: true
+  });
 
 
-rawCtx.fillStyle =
-    "#ffffff";
-
+rawCtx.fillStyle = "#ffffff";
 rawCtx.fillRect(
-    0,
-    0,
-    rawCanvas.width,
-    rawCanvas.height
+  0,
+  0,
+  rawCanvas.width,
+  rawCanvas.height
 );
 
 
-ctx.fillStyle =
-    "#ffffff";
-
+ctx.fillStyle = "#ffffff";
 ctx.fillRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
+  0,
+  0,
+  canvas.width,
+  canvas.height
 );
 
 
-rawCtx.strokeStyle =
-    "#000000";
-
-rawCtx.lineWidth =
-    3;
-
-rawCtx.lineCap =
-    "round";
-
-rawCtx.lineJoin =
-    "round";
+rawCtx.strokeStyle = "#000000";
+rawCtx.lineWidth = 3;
+rawCtx.lineCap = "round";
+rawCtx.lineJoin = "round";
 
 
 /* =========================================================
-   DESSIN
+   DESSIN — VERSION ROBUSTE MOBILE / GITHUB PAGES
    ========================================================= */
 
 let drawing = false;
+let activePointerId = null;
 
 let lastX = 0;
 let lastY = 0;
 
-let activeTouchId = null;
 
+function canvasPosition(clientX, clientY) {
 
-function canvasPosition(
-    clientX,
-    clientY
-) {
+  const rect =
+    canvas.getBoundingClientRect();
 
-    const rect =
-        canvas.getBoundingClientRect();
+  const scaleX =
+    canvas.width / rect.width;
 
+  const scaleY =
+    canvas.height / rect.height;
 
-    const scaleX =
-        canvas.width /
-        rect.width;
+  let x =
+    (clientX - rect.left) * scaleX;
 
-    const scaleY =
-        canvas.height /
-        rect.height;
+  let y =
+    (clientY - rect.top) * scaleY;
 
-
-    let x =
-        (
-            clientX -
-            rect.left
-        ) * scaleX;
-
-
-    let y =
-        (
-            clientY -
-            rect.top
-        ) * scaleY;
-
-
-    x = Math.max(
-        0,
-        Math.min(
-            canvas.width,
-            x
-        )
+  x =
+    Math.max(
+      0,
+      Math.min(canvas.width, x)
     );
 
-
-    y = Math.max(
-        0,
-        Math.min(
-            canvas.height,
-            y
-        )
+  y =
+    Math.max(
+      0,
+      Math.min(canvas.height, y)
     );
 
-
-    return {
-        x,
-        y
-    };
+  return {
+    x,
+    y
+  };
 }
 
 
-function beginDrawing(
+function beginDrawing(x, y) {
+
+  drawing = true;
+
+  lastX = x;
+  lastY = y;
+
+  rawCtx.beginPath();
+
+  rawCtx.arc(
     x,
-    y
-) {
+    y,
+    rawCtx.lineWidth / 2,
+    0,
+    Math.PI * 2
+  );
 
-    drawing = true;
+  rawCtx.fillStyle = "#000000";
+  rawCtx.fill();
 
-    lastX = x;
-    lastY = y;
+  scheduleRender();
 
-
-    rawCtx.beginPath();
-
-    rawCtx.arc(
-        x,
-        y,
-        rawCtx.lineWidth / 2,
-        0,
-        Math.PI * 2
-    );
-
-    rawCtx.fillStyle =
-        "#000000";
-
-    rawCtx.fill();
-
-
-    scheduleRender();
-
-    setStatus(
-        "Dessin en cours…"
-    );
+  setStatus("Dessin en cours…");
 }
 
 
-function continueDrawing(
+function continueDrawing(x, y) {
+
+  if (!drawing)
+    return;
+
+  rawCtx.beginPath();
+
+  rawCtx.moveTo(
+    lastX,
+    lastY
+  );
+
+  rawCtx.lineTo(
     x,
     y
-) {
+  );
 
-    if (!drawing) {
-        return;
-    }
+  rawCtx.stroke();
 
+  lastX = x;
+  lastY = y;
 
-    rawCtx.beginPath();
-
-    rawCtx.moveTo(
-        lastX,
-        lastY
-    );
-
-    rawCtx.lineTo(
-        x,
-        y
-    );
-
-    rawCtx.stroke();
-
-
-    lastX = x;
-    lastY = y;
-
-
-    scheduleRender();
+  scheduleRender();
 }
 
 
 function endDrawing() {
 
-    if (!drawing) {
-        return;
-    }
+  if (!drawing)
+    return;
 
-    drawing = false;
+  drawing = false;
 
-    scheduleRender();
+  activePointerId = null;
 
-    setStatus(
-        "Dessin prêt."
-    );
+  scheduleRender();
+
+  setStatus("Dessin prêt.");
 }
 
 
 /* =========================================================
-   SOURIS
+   POINTER EVENTS
    ========================================================= */
 
 canvas.addEventListener(
-    "mousedown",
-    function(event) {
+  "pointerdown",
+  function(event) {
 
-        if (event.button !== 0) {
-            return;
-        }
-
-
-        const p =
-            canvasPosition(
-                event.clientX,
-                event.clientY
-            );
-
-
-        beginDrawing(
-            p.x,
-            p.y
-        );
+    if (
+      event.pointerType === "mouse" &&
+      event.button !== 0
+    ) {
+      return;
     }
+
+    event.preventDefault();
+
+    if (drawing)
+      return;
+
+    activePointerId =
+      event.pointerId;
+
+    try {
+      canvas.setPointerCapture(
+        event.pointerId
+      );
+    } catch (error) {
+      /* Certains anciens navigateurs */
+    }
+
+    const p =
+      canvasPosition(
+        event.clientX,
+        event.clientY
+      );
+
+    beginDrawing(
+      p.x,
+      p.y
+    );
+  },
+  {
+    passive: false
+  }
 );
 
 
 canvas.addEventListener(
-    "mousemove",
-    function(event) {
+  "pointermove",
+  function(event) {
 
-        if (!drawing) {
-            return;
-        }
+    if (!drawing)
+      return;
 
-
-        const p =
-            canvasPosition(
-                event.clientX,
-                event.clientY
-            );
-
-
-        continueDrawing(
-            p.x,
-            p.y
-        );
+    if (
+      activePointerId !==
+      event.pointerId
+    ) {
+      return;
     }
-);
 
+    event.preventDefault();
 
-window.addEventListener(
-    "mouseup",
-    endDrawing
-);
+    const p =
+      canvasPosition(
+        event.clientX,
+        event.clientY
+      );
 
-
-/* =========================================================
-   TACTILE
-   ========================================================= */
-
-canvas.addEventListener(
-    "touchstart",
-    function(event) {
-
-        event.preventDefault();
-
-
-        if (drawing) {
-            return;
-        }
-
-
-        const touch =
-            event.changedTouches[0];
-
-
-        if (!touch) {
-            return;
-        }
-
-
-        activeTouchId =
-            touch.identifier;
-
-
-        const p =
-            canvasPosition(
-                touch.clientX,
-                touch.clientY
-            );
-
-
-        beginDrawing(
-            p.x,
-            p.y
-        );
-
-    },
-    {
-        passive: false
-    }
+    continueDrawing(
+      p.x,
+      p.y
+    );
+  },
+  {
+    passive: false
+  }
 );
 
 
 canvas.addEventListener(
-    "touchmove",
-    function(event) {
+  "pointerup",
+  function(event) {
 
-        event.preventDefault();
-
-
-        if (!drawing) {
-            return;
-        }
-
-
-        let touch = null;
-
-
-        for (
-            let i = 0;
-            i < event.changedTouches.length;
-            i++
-        ) {
-
-            if (
-                event.changedTouches[i]
-                    .identifier ===
-                activeTouchId
-            ) {
-
-                touch =
-                    event.changedTouches[i];
-
-                break;
-            }
-        }
-
-
-        if (!touch) {
-            return;
-        }
-
-
-        const p =
-            canvasPosition(
-                touch.clientX,
-                touch.clientY
-            );
-
-
-        continueDrawing(
-            p.x,
-            p.y
-        );
-
-    },
-    {
-        passive: false
+    if (
+      activePointerId !==
+      event.pointerId
+    ) {
+      return;
     }
+
+    event.preventDefault();
+
+    try {
+      canvas.releasePointerCapture(
+        event.pointerId
+      );
+    } catch (error) {
+      /* Rien */
+    }
+
+    endDrawing();
+  },
+  {
+    passive: false
+  }
 );
 
 
 canvas.addEventListener(
-    "touchend",
-    function(event) {
+  "pointercancel",
+  function(event) {
 
-        event.preventDefault();
-
-
-        for (
-            let i = 0;
-            i < event.changedTouches.length;
-            i++
-        ) {
-
-            if (
-                event.changedTouches[i]
-                    .identifier ===
-                activeTouchId
-            ) {
-
-                activeTouchId =
-                    null;
-
-                endDrawing();
-
-                break;
-            }
-        }
-
-    },
-    {
-        passive: false
+    if (
+      activePointerId !==
+      event.pointerId
+    ) {
+      return;
     }
+
+    event.preventDefault();
+
+    endDrawing();
+  },
+  {
+    passive: false
+  }
 );
 
 
 canvas.addEventListener(
-    "touchcancel",
-    function(event) {
-
-        event.preventDefault();
-
-        activeTouchId = null;
-
-        endDrawing();
-
-    },
-    {
-        passive: false
-    }
-);
-
-
-canvas.addEventListener(
-    "contextmenu",
-    function(event) {
-
-        event.preventDefault();
-
-    }
+  "contextmenu",
+  function(event) {
+    event.preventDefault();
+  }
 );
 
 
@@ -1474,225 +1028,2421 @@ canvas.addEventListener(
    ========================================================= */
 
 let filteredImageData = null;
-
 let renderPending = false;
 
 
 function scheduleRender() {
 
-    if (renderPending) {
-        return;
+  if (renderPending)
+    return;
+
+  renderPending = true;
+
+  requestAnimationFrame(
+    function() {
+
+      renderPending = false;
+
+      applyFilters();
     }
-
-
-    renderPending = true;
-
-
-    requestAnimationFrame(
-        function() {
-
-            renderPending = false;
-
-            applyFilters();
-
-        }
-    );
+  );
 }
 
 
 function applyFilters() {
 
-    const imageData =
-        rawCtx.getImageData(
-            0,
-            0,
-            rawCanvas.width,
-            rawCanvas.height
-        );
+  const imageData =
+    rawCtx.getImageData(
+      0,
+      0,
+      rawCanvas.width,
+      rawCanvas.height
+    );
+
+  const data =
+    imageData.data;
+
+  const contrast =
+    Number(
+      document.getElementById(
+        "contrast"
+      ).value
+    );
+
+  const brightness =
+    Number(
+      document.getElementById(
+        "brightness"
+      ).value
+    );
+
+  const bw =
+    document.getElementById(
+      "bwMode"
+    ).value === "bw";
+
+  const invert =
+    document.getElementById(
+      "invert"
+    ).value === "1";
 
 
-    const data =
-        imageData.data;
+  const factor =
+    (259 * (contrast + 255)) /
+    (255 * (259 - contrast));
 
 
-    const contrast =
-        Number(
-            document.getElementById(
-                "contrast"
-            ).value
-        );
+  for (
+    let i = 0;
+    i < data.length;
+    i += 4
+  ) {
+
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
 
 
-    const brightness =
-        Number(
-            document.getElementById(
-                "brightness"
-            ).value
-        );
+    r =
+      factor * (r - 128)
+      + 128
+      + brightness;
+
+    g =
+      factor * (g - 128)
+      + 128
+      + brightness;
+
+    b =
+      factor * (b - 128)
+      + 128
+      + brightness;
 
 
-    const bw =
-        document.getElementById(
-            "bwMode"
-        ).value === "bw";
+    r =
+      Math.max(
+        0,
+        Math.min(255, r)
+      );
+
+    g =
+      Math.max(
+        0,
+        Math.min(255, g)
+      );
+
+    b =
+      Math.max(
+        0,
+        Math.min(255, b)
+      );
 
 
-    const invert =
-        document.getElementById(
-            "invert"
-        ).value === "1";
+    if (bw) {
 
+      const gray =
+        .299 * r +
+        .587 * g +
+        .114 * b;
 
-    const factor =
-        (
-            259 *
-            (contrast + 255)
-        ) /
-        (
-            255 *
-            (259 - contrast)
-        );
-
-
-    for (
-        let i = 0;
-        i < data.length;
-        i += 4
-    ) {
-
-        let r =
-            data[i];
-
-        let g =
-            data[i + 1];
-
-        let b =
-            data[i + 2];
-
-
-        r =
-            factor *
-            (r - 128) +
-            128 +
-            brightness;
-
-
-        g =
-            factor *
-            (g - 128) +
-            128 +
-            brightness;
-
-
-        b =
-            factor *
-            (b - 128) +
-            128 +
-            brightness;
-
-
-        r =
-            Math.max(
-                0,
-                Math.min(255, r)
-            );
-
-        g =
-            Math.max(
-                0,
-                Math.min(255, g)
-            );
-
-        b =
-            Math.max(
-                0,
-                Math.min(255, b)
-            );
-
-
-        if (bw) {
-
-            const gray =
-                .299 * r +
-                .587 * g +
-                .114 * b;
-
-
-            r = gray;
-            g = gray;
-            b = gray;
-        }
-
-
-        if (invert) {
-
-            r = 255 - r;
-            g = 255 - g;
-            b = 255 - b;
-        }
-
-
-        data[i] =
-            r;
-
-        data[i + 1] =
-            g;
-
-        data[i + 2] =
-            b;
+      r = gray;
+      g = gray;
+      b = gray;
     }
 
 
-    ctx.putImageData(
-        imageData,
-        0,
-        0
+    if (invert) {
+
+      r = 255 - r;
+      g = 255 - g;
+      b = 255 - b;
+    }
+
+
+    data[i] = r;
+    data[i + 1] = g;
+    data[i + 2] = b;
+  }
+
+
+  ctx.putImageData(
+    imageData,
+    0,
+    0
+  );
+
+  filteredImageData =
+    ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
     );
-
-
-    filteredImageData =
-        ctx.getImageData(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
 }
 
 
 /* =========================================================
-   VALEURS
+   INTERFACE
    ========================================================= */
+
+function setStatus(text) {
+
+  document.getElementById(
+    "status"
+  ).textContent = text;
+}
+
 
 function updateValues() {
 
+  document.getElementById(
+    "contrastValue"
+  ).textContent =
     document.getElementById(
-        "contrastValue"
-    ).textContent =
-        document.getElementById(
-            "contrast"
-        ).value;
+      "contrast"
+    ).value;
 
 
+  document.getElementById(
+    "brightnessValue"
+  ).textContent =
     document.getElementById(
-        "brightnessValue"
-    ).textContent =
-        document.getElementById(
-            "brightness"
-        ).value;
+      "brightness"
+    ).value;
 
 
+  document.getElementById(
+    "durationValue"
+  ).textContent =
     document.getElementById(
-        "durationValue"
-    ).textContent =
-        document.getElementById(
-            "duration"
-        ).value +
-        " s";
+      "duration"
+    ).value + " s";
 
 
+  document.getElementById(
+    "volumeValue"
+  ).textContent =
     document.getElementById(
-        "volumeValue"
-    ).textContent =
+      "volume"
+    ).value + " %";
+
+
+  document.getElementById(
+    "attackValue"
+  ).textContent =
+    (
+      Number(
         document.getElementById(
- 
+          "attack"
+        ).value
+      ) / 100
+    ).toFixed(2) + " s";
+
+
+  document.getElementById(
+    "releaseValue"
+  ).textContent =
+    (
+      Number(
+        document.getElementById(
+          "release"
+        ).value
+      ) / 100
+    ).toFixed(2) + " s";
+}
+
+
+document
+  .querySelectorAll(
+    "input[type=range]"
+  )
+  .forEach(
+    input =>
+      input.addEventListener(
+        "input",
+        updateValues
+      )
+  );
+
+
+updateValues();
+
+
+/* =========================================================
+   IMPORTATION IMAGE
+   ========================================================= */
+
+document
+  .getElementById("imageInput")
+  .addEventListener(
+    "change",
+    function(event) {
+
+      const file =
+        event.target.files[0];
+
+      if (!file)
+        return;
+
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload =
+        function(e) {
+
+          const img =
+            new Image();
+
+
+          img.onload =
+            function() {
+
+              rawCtx.fillStyle =
+                "#ffffff";
+
+              rawCtx.fillRect(
+                0,
+                0,
+                rawCanvas.width,
+                rawCanvas.height
+              );
+
+
+              const scale =
+                Math.min(
+                  rawCanvas.width /
+                    img.width,
+
+                  rawCanvas.height /
+                    img.height
+                );
+
+
+              const w =
+                img.width * scale;
+
+              const h =
+                img.height * scale;
+
+
+              const x =
+                (rawCanvas.width - w) / 2;
+
+              const y =
+                (rawCanvas.height - h) / 2;
+
+
+              rawCtx.drawImage(
+                img,
+                x,
+                y,
+                w,
+                h
+              );
+
+
+              scheduleRender();
+
+              lastAudioBuffer = null;
+
+              setStatus(
+                "Image importée."
+              );
+            };
+
+
+          img.src =
+            e.target.result;
+        };
+
+
+      reader.readAsDataURL(file);
+    }
+  );
+
+
+/* =========================================================
+   EFFACER
+   ========================================================= */
+
+function clearCanvas() {
+
+  stopAudio();
+
+  rawCtx.clearRect(
+    0,
+    0,
+    rawCanvas.width,
+    rawCanvas.height
+  );
+
+
+  rawCtx.fillStyle =
+    "#ffffff";
+
+  rawCtx.fillRect(
+    0,
+    0,
+    rawCanvas.width,
+    rawCanvas.height
+  );
+
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+
+  ctx.fillStyle =
+    "#ffffff";
+
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+
+  filteredImageData = null;
+
+  lastAudioBuffer = null;
+
+  setStatus(
+    "Canvas effacé."
+  );
+}
+
+
+document
+  .getElementById("btn-clear")
+  .addEventListener(
+    "click",
+    clearCanvas
+  );
+
+
+/* =========================================================
+   AUDIO
+   ========================================================= */
+
+let audioContext = null;
+
+let activeSources = [];
+
+let isPlaying = false;
+
+let animationFrame = null;
+
+let lastAudioBuffer = null;
+
+
+function getAudioContext() {
+
+  if (!audioContext) {
+
+    const AC =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+
+    if (!AC) {
+
+      alert(
+        "Web Audio n'est pas disponible."
+      );
+
+      return null;
+    }
+
+
+    audioContext =
+      new AC();
+  }
+
+
+  if (
+    audioContext.state ===
+    "suspended"
+  ) {
+    audioContext.resume();
+  }
+
+
+  return audioContext;
+}
+
+
+/* =========================================================
+   ÉCHELLES
+   ========================================================= */
+
+function quantizeFrequency(
+  frequency,
+  scaleName
+) {
+
+  if (scaleName === "free")
+    return frequency;
+
+
+  const midi =
+    69 +
+    12 *
+    Math.log2(
+      frequency / 440
+    );
+
+
+  const octave =
+    Math.floor(
+      midi / 12
+    );
+
+
+  const semitone =
+    (
+      Math.round(midi) % 12 +
+      12
+    ) % 12;
+
+
+  let intervals;
+
+
+  switch (scaleName) {
+
+    case "chromatic":
+      intervals =
+        [0,1,2,3,4,5,6,7,8,9,10,11];
+      break;
+
+    case "major":
+      intervals =
+        [0,2,4,5,7,9,11];
+      break;
+
+    case "minor":
+      intervals =
+        [0,2,3,5,7,8,10];
+      break;
+
+    case "pentatonic":
+      intervals =
+        [0,2,4,7,9];
+      break;
+
+    default:
+      return frequency;
+  }
+
+
+  let best =
+    intervals[0];
+
+  let bestDistance =
+    Infinity;
+
+
+  for (
+    const interval of intervals
+  ) {
+
+    const distance =
+      Math.abs(
+        semitone - interval
+      );
+
+
+    if (
+      distance <
+      bestDistance
+    ) {
+
+      bestDistance =
+        distance;
+
+      best =
+        interval;
+    }
+  }
+
+
+  const targetMidi =
+    octave * 12 +
+    best;
+
+
+  return 440 *
+    Math.pow(
+      2,
+      (targetMidi - 69) / 12
+    );
+}
+
+
+/* =========================================================
+   ANALYSE MASSE
+   ========================================================= */
+
+function smoothArray(
+  array,
+  radius
+) {
+
+  const copy =
+    new Float32Array(array);
+
+
+  for (
+    let i = 0;
+    i < array.length;
+    i++
+  ) {
+
+    let sum = 0;
+    let weight = 0;
+
+
+    for (
+      let j = -radius;
+      j <= radius;
+      j++
+    ) {
+
+      const index =
+        i + j;
+
+
+      if (
+        index < 0 ||
+        index >= array.length
+      ) {
+        continue;
+      }
+
+
+      const w =
+        radius + 1 -
+        Math.abs(j);
+
+
+      sum +=
+        copy[index] * w;
+
+      weight += w;
+    }
+
+
+    array[i] =
+      sum / weight;
+  }
+}
+
+
+function analyseMassField(
+  samples
+) {
+
+  const image =
+    rawCtx.getImageData(
+      0,
+      0,
+      rawCanvas.width,
+      rawCanvas.height
+    );
+
+
+  const data =
+    image.data;
+
+
+  const width =
+    rawCanvas.width;
+
+  const height =
+    rawCanvas.height;
+
+
+  const density =
+    new Float32Array(samples);
+
+  const center =
+    new Float32Array(samples);
+
+  const spread =
+    new Float32Array(samples);
+
+
+  const cellWidth =
+    width / samples;
+
+
+  for (
+    let s = 0;
+    s < samples;
+    s++
+  ) {
+
+    const x0 =
+      Math.floor(
+        s * cellWidth
+      );
+
+
+    const x1 =
+      Math.min(
+        width,
+        Math.floor(
+          (s + 1) * cellWidth
+        )
+      );
+
+
+    let total = 0;
+    let weightedY = 0;
+
+
+    for (
+      let x = x0;
+      x < x1;
+      x += 2
+    ) {
+
+      for (
+        let y = 0;
+        y < height;
+        y += 3
+      ) {
+
+        const index =
+          (y * width + x) * 4;
+
+
+        const brightness =
+          (
+            data[index] +
+            data[index + 1] +
+            data[index + 2]
+          ) / 3;
+
+
+        const mass =
+          1 -
+          brightness / 255;
+
+
+        total += mass;
+
+        weightedY +=
+          y * mass;
+      }
+    }
+
+
+    const possible =
+      (
+        Math.max(
+          1,
+          x1 - x0
+        ) / 2
+      ) *
+      Math.ceil(
+        height / 3
+      );
+
+
+    let d =
+      total /
+      Math.max(
+        1,
+        possible
+      );
+
+
+    d =
+      Math.pow(
+        Math.min(1, d),
+        .72
+      );
+
+
+    density[s] = d;
+
+
+    let cy = .5;
+
+
+    if (total > 0) {
+
+      cy =
+        weightedY /
+        total /
+        height;
+    }
+
+
+    const inverted =
+      document.getElementById(
+        "invertFrequency"
+      ).value === "1";
+
+
+    if (inverted)
+      cy = 1 - cy;
+
+
+    center[s] =
+      Math.max(
+        0,
+        Math.min(1, cy)
+      );
+
+
+    let variance = 0;
+
+
+    if (total > 0) {
+
+      for (
+        let x = x0;
+        x < x1;
+        x += 3
+      ) {
+
+        for (
+          let y = 0;
+          y < height;
+          y += 5
+        ) {
+
+          const index =
+            (y * width + x) * 4;
+
+
+          const brightness =
+            (
+              data[index] +
+              data[index + 1] +
+              data[index + 2]
+            ) / 3;
+
+
+          const mass =
+            1 -
+            brightness / 255;
+
+
+          const normalizedY =
+            y / height;
+
+
+          variance +=
+            mass *
+            Math.pow(
+              normalizedY - cy,
+              2
+            );
+        }
+      }
+
+
+      variance /=
+        Math.max(
+          .0001,
+          total
+        );
+    }
+
+
+    spread[s] =
+      Math.min(
+        1,
+        Math.sqrt(
+          variance
+        ) * 2.4
+      );
+  }
+
+
+  smoothArray(
+    density,
+    3
+  );
+
+  smoothArray(
+    center,
+    4
+  );
+
+  smoothArray(
+    spread,
+    4
+  );
+
+
+  return {
+    density,
+    center,
+    spread
+  };
+}
+
+
+/* =========================================================
+   ANALYSE DU DESSIN
+   ========================================================= */
+
+function analyseDrawing() {
+
+  const mode =
+    document.getElementById(
+      "interpretation"
+    ).value;
+
+
+  const bins =
+    Math.max(
+      8,
+      Math.min(
+        200,
+        Number(
+          document.getElementById(
+            "bins"
+          ).value
+        )
+      )
+    );
+
+
+  const samples =
+    Math.max(
+      160,
+      Math.min(
+        900,
+        bins * 8
+      )
+    );
+
+
+  const fmin =
+    Math.max(
+      20,
+      Number(
+        document.getElementById(
+          "fmin"
+        ).value
+      )
+    );
+
+
+  const fmax =
+    Math.max(
+      fmin + 1,
+      Number(
+        document.getElementById(
+          "fmax"
+        ).value
+      )
+    );
+
+
+  const scaleName =
+    document.getElementById(
+      "scale"
+    ).value;
+
+
+  const frequencies =
+    new Float32Array(samples);
+
+  const amplitudes =
+    new Float32Array(samples);
+
+
+  /* -------------------------------------------------------
+     MASSE
+     ------------------------------------------------------- */
+
+  if (mode === "density") {
+
+    const field =
+      analyseMassField(
+        samples
+      );
+
+
+    for (
+      let i = 0;
+      i < samples;
+      i++
+    ) {
+
+      let ratio =
+        1 -
+        field.center[i];
+
+
+      let frequency =
+        fmin *
+        Math.pow(
+          fmax / fmin,
+          ratio
+        );
+
+
+      frequency *=
+        .86 +
+        field.density[i] *
+        .28;
+
+
+      frequencies[i] =
+        quantizeFrequency(
+          frequency,
+          scaleName
+        );
+
+
+      amplitudes[i] =
+        Math.pow(
+          field.density[i],
+          .75
+        );
+    }
+
+
+    return {
+      frequencies,
+      amplitudes,
+      massField: field
+    };
+  }
+
+
+  const image =
+    rawCtx.getImageData(
+      0,
+      0,
+      rawCanvas.width,
+      rawCanvas.height
+    );
+
+
+  const data =
+    image.data;
+
+  const width =
+    rawCanvas.width;
+
+  const height =
+    rawCanvas.height;
+
+
+  /* -------------------------------------------------------
+     PIXELS
+     ------------------------------------------------------- */
+
+  if (mode === "spectral") {
+
+    for (
+      let i = 0;
+      i < samples;
+      i++
+    ) {
+
+      const x =
+        Math.floor(
+          i * width / samples
+        );
+
+
+      let energy = 0;
+
+
+      for (
+        let y = 0;
+        y < height;
+        y += 5
+      ) {
+
+        const index =
+          (y * width + x) * 4;
+
+
+        const brightness =
+          (
+            data[index] +
+            data[index + 1] +
+            data[index + 2]
+          ) / 3;
+
+
+        energy +=
+          1 -
+          brightness / 255;
+      }
+
+
+      energy /=
+        Math.ceil(
+          height / 5
+        );
+
+
+      amplitudes[i] =
+        Math.min(
+          1,
+          energy * 2
+        );
+
+
+      const ratio =
+        i /
+        (samples - 1);
+
+
+      let frequency =
+        fmin *
+        Math.pow(
+          fmax / fmin,
+          ratio
+        );
+
+
+      if (
+        document.getElementById(
+          "invertFrequency"
+        ).value === "1"
+      ) {
+
+        frequency =
+          fmax *
+          Math.pow(
+            fmin / fmax,
+            ratio
+          );
+      }
+
+
+      frequencies[i] =
+        quantizeFrequency(
+          frequency,
+          scaleName
+        );
+    }
+  }
+
+
+  /* -------------------------------------------------------
+     CONTOURS
+     ------------------------------------------------------- */
+
+  else if (mode === "contours") {
+
+    for (
+      let i = 0;
+      i < samples;
+      i++
+    ) {
+
+      const x =
+        Math.floor(
+          i * width / samples
+        );
+
+
+      let energy = 0;
+
+
+      for (
+        let y = 1;
+        y < height - 1;
+        y += 3
+      ) {
+
+        const a =
+          (
+            (y - 1) *
+            width +
+            x
+          ) * 4;
+
+
+        const b =
+          (
+            (y + 1) *
+            width +
+            x
+          ) * 4;
+
+
+        const va =
+          (
+            data[a] +
+            data[a + 1] +
+            data[a + 2]
+          ) / 3;
+
+
+        const vb =
+          (
+            data[b] +
+            data[b + 1] +
+            data[b + 2]
+          ) / 3;
+
+
+        energy +=
+          Math.abs(
+            va - vb
+          ) / 255;
+      }
+
+
+      energy /=
+        Math.ceil(
+          height / 3
+        );
+
+
+      amplitudes[i] =
+        Math.min(
+          1,
+          energy * 5
+        );
+
+
+      const ratio =
+        i /
+        (samples - 1);
+
+
+      let frequency =
+        fmin *
+        Math.pow(
+          fmax / fmin,
+          ratio
+        );
+
+
+      if (
+        document.getElementById(
+          "invertFrequency"
+        ).value === "1"
+      ) {
+
+        frequency =
+          fmax *
+          Math.pow(
+            fmin / fmax,
+            ratio
+          );
+      }
+
+
+      frequencies[i] =
+        quantizeFrequency(
+          frequency,
+          scaleName
+        );
+    }
+  }
+
+
+  /* -------------------------------------------------------
+     MCLAREN
+     ------------------------------------------------------- */
+
+  else if (mode === "mclaren") {
+
+    const baseFrequency =
+      Math.max(
+        20,
+        Number(
+          document.getElementById(
+            "mclarenFrequency"
+          ).value
+        )
+      );
+
+
+    for (
+      let i = 0;
+      i < samples;
+      i++
+    ) {
+
+      const x =
+        Math.floor(
+          i * width / samples
+        );
+
+
+      let weightedY = 0;
+      let total = 0;
+
+
+      for (
+        let y = 0;
+        y < height;
+        y += 4
+      ) {
+
+        const index =
+          (y * width + x) * 4;
+
+
+        const brightness =
+          (
+            data[index] +
+            data[index + 1] +
+            data[index + 2]
+          ) / 3;
+
+
+        const mass =
+          1 -
+          brightness / 255;
+
+
+        weightedY +=
+          y * mass;
+
+        total += mass;
+      }
+
+
+      let position = .5;
+
+
+      if (total > 0) {
+
+        position =
+          weightedY /
+          total /
+          height;
+      }
+
+
+      if (
+        document.getElementById(
+          "invertFrequency"
+        ).value === "1"
+      ) {
+
+        position =
+          1 - position;
+      }
+
+
+      frequencies[i] =
+        baseFrequency *
+        Math.pow(
+          4,
+          1 - position
+        );
+
+
+      amplitudes[i] =
+        Math.min(
+          1,
+          total /
+          (height / 4) *
+          2
+        );
+
+
+      frequencies[i] =
+        quantizeFrequency(
+          frequencies[i],
+          scaleName
+        );
+    }
+  }
+
+
+  return {
+    frequencies,
+    amplitudes
+  };
+}
+
+
+/* =========================================================
+   OSCILLATEURS
+   ========================================================= */
+
+function waveformSample(
+  phase,
+  waveform
+) {
+
+  switch (waveform) {
+
+    case "triangle":
+
+      return (
+        2 / Math.PI
+      ) *
+      Math.asin(
+        Math.sin(phase)
+      );
+
+
+    case "sawtooth":
+
+      return (
+        2 *
+        (
+          phase /
+          (2 * Math.PI) -
+          Math.floor(
+            phase /
+            (2 * Math.PI) +
+            .5
+          )
+        )
+      );
+
+
+    case "square":
+
+      return Math.sin(phase) >= 0
+        ? 1
+        : -1;
+
+
+    case "sine":
+
+    default:
+
+      return Math.sin(phase);
+  }
+}
+
+
+/* =========================================================
+   CRÉATION DU SON
+   ========================================================= */
+
+function createAudioBuffer() {
+
+  const ac =
+    getAudioContext();
+
+
+  if (!ac)
+    return null;
+
+
+  const duration =
+    Number(
+      document.getElementById(
+        "duration"
+      ).value
+    );
+
+
+  const sampleRate =
+    ac.sampleRate;
+
+
+  const length =
+    Math.floor(
+      duration *
+      sampleRate
+    );
+
+
+  const buffer =
+    ac.createBuffer(
+      1,
+      length,
+      sampleRate
+    );
+
+
+  const channel =
+    buffer.getChannelData(0);
+
+
+  const analysis =
+    analyseDrawing();
+
+
+  const mode =
+    document.getElementById(
+      "interpretation"
+    ).value;
+
+
+  const waveform =
+    document.getElementById(
+      "waveform"
+    ).value;
+
+
+  const attack =
+    Number(
+      document.getElementById(
+        "attack"
+      ).value
+    ) / 100;
+
+
+  const release =
+    Number(
+      document.getElementById(
+        "release"
+      ).value
+    ) / 100;
+
+
+  const frequencies =
+    analysis.frequencies;
+
+  const amplitudes =
+    analysis.amplitudes;
+
+
+  const samples =
+    frequencies.length;
+
+
+  /* =====================================================
+     MASSE — CHAMP CONTINU
+     ===================================================== */
+
+  if (mode === "density") {
+
+    const field =
+      analysis.massField;
+
+
+    let phase1 = 0;
+    let phase2 = 0;
+    let phase3 = 0;
+    let phase4 = 0;
+
+
+    for (
+      let i = 0;
+      i < length;
+      i++
+    ) {
+
+      const t =
+        i / sampleRate;
+
+
+      const position =
+        t /
+        duration *
+        (samples - 1);
+
+
+      const index =
+        Math.floor(position);
+
+
+      const frac =
+        position - index;
+
+
+      const next =
+        Math.min(
+          samples - 1,
+          index + 1
+        );
+
+
+      const frequency =
+        frequencies[index] *
+          (1 - frac) +
+
+        frequencies[next] *
+          frac;
+
+
+      const density =
+        field.density[index] *
+          (1 - frac) +
+
+        field.density[next] *
+          frac;
+
+
+      const spread =
+        field.spread[index] *
+          (1 - frac) +
+
+        field.spread[next] *
+          frac;
+
+
+      phase1 +=
+        2 *
+        Math.PI *
+        frequency /
+        sampleRate;
+
+
+      phase2 +=
+        2 *
+        Math.PI *
+        frequency *
+        2 /
+        sampleRate;
+
+
+      phase3 +=
+        2 *
+        Math.PI *
+        frequency *
+        3 /
+        sampleRate;
+
+
+      phase4 +=
+        2 *
+        Math.PI *
+        frequency *
+        4 /
+        sampleRate;
+
+
+      const s1 =
+        Math.sin(phase1);
+
+      const s2 =
+        Math.sin(phase2);
+
+      const s3 =
+        Math.sin(phase3);
+
+      const s4 =
+        Math.sin(phase4);
+
+
+      const harmonic2 =
+        .16 +
+        spread * .18;
+
+
+      const harmonic3 =
+        .06 +
+        density * .12;
+
+
+      const harmonic4 =
+        spread * .07;
+
+
+      let sample =
+        s1 * .68 +
+        s2 * harmonic2 +
+        s3 * harmonic3 +
+        s4 * harmonic4;
+
+
+      /*
+       * Saturation douce :
+       * donne une matière sonore continue
+       * sans transformer Masse en bruit.
+       */
+
+      sample =
+        Math.tanh(
+          sample * 1.18
+        );
+
+
+      let envelope = 1;
+
+
+      if (
+        attack > 0 &&
+        t < attack
+      ) {
+
+        envelope =
+          t / attack;
+      }
+
+
+      if (
+        release > 0 &&
+        t > duration - release
+      ) {
+
+        envelope =
+          (
+            duration - t
+          ) / release;
+      }
+
+
+      envelope =
+        Math.max(
+          0,
+          Math.min(
+            1,
+            envelope
+          )
+        );
+
+
+      const gain =
+        (
+          .015 +
+          density * .42
+        ) *
+        envelope;
+
+
+      channel[i] =
+        sample * gain;
+    }
+
+
+    return buffer;
+  }
+
+
+  /* =====================================================
+     AUTRES MODES
+     ===================================================== */
+
+  let phase = 0;
+
+
+  for (
+    let i = 0;
+    i < length;
+    i++
+  ) {
+
+    const t =
+      i / sampleRate;
+
+
+    const position =
+      t /
+      duration *
+      (samples - 1);
+
+
+    const index =
+      Math.floor(position);
+
+
+    const frac =
+      position - index;
+
+
+    const next =
+      Math.min(
+        samples - 1,
+        index + 1
+      );
+
+
+    const frequency =
+      frequencies[index] *
+        (1 - frac) +
+
+      frequencies[next] *
+        frac;
+
+
+    const amplitude =
+      amplitudes[index] *
+        (1 - frac) +
+
+      amplitudes[next] *
+        frac;
+
+
+    phase +=
+      2 *
+      Math.PI *
+      frequency /
+      sampleRate;
+
+
+    let sample =
+      waveformSample(
+        phase,
+        waveform
+      );
+
+
+    let envelope = 1;
+
+
+    if (
+      attack > 0 &&
+      t < attack
+    ) {
+
+      envelope =
+        t / attack;
+    }
+
+
+    if (
+      release > 0 &&
+      t > duration - release
+    ) {
+
+      envelope =
+        (
+          duration - t
+        ) / release;
+    }
+
+
+    envelope =
+      Math.max(
+        0,
+        Math.min(
+          1,
+          envelope
+        )
+      );
+
+
+    const gain =
+      (
+        .04 +
+        amplitude * .75
+      ) *
+      envelope;
+
+
+    channel[i] =
+      sample * gain;
+  }
+
+
+  return buffer;
+}
+
+
+/* =========================================================
+   LECTURE
+   ========================================================= */
+
+function playAudio() {
+
+  stopAudio();
+
+
+  const ac =
+    getAudioContext();
+
+
+  if (!ac)
+    return;
+
+
+  const buffer =
+    createAudioBuffer();
+
+
+  if (!buffer)
+    return;
+
+
+  lastAudioBuffer =
+    buffer;
+
+
+  const source =
+    ac.createBufferSource();
+
+
+  source.buffer =
+    buffer;
+
+
+  const gainNode =
+    ac.createGain();
+
+
+  gainNode.gain.value =
+    Number(
+      document.getElementById(
+        "volume"
+      ).value
+    ) / 100;
+
+
+  source.connect(
+    gainNode
+  );
+
+
+  gainNode.connect(
+    ac.destination
+  );
+
+
+  activeSources =
+    [source];
+
+
+  isPlaying = true;
+
+
+  source.onended =
+    function() {
+
+      if (!isPlaying)
+        return;
+
+
+      isPlaying = false;
+
+
+      cancelAnimationFrame(
+        animationFrame
+      );
+
+
+      if (filteredImageData) {
+
+        ctx.putImageData(
+          filteredImageData,
+          0,
+          0
+        );
+      }
+
+
+      setStatus(
+        "Lecture terminée."
+      );
+    };
+
+
+  source.start();
+
+
+  setStatus(
+    "Lecture du dessin…"
+  );
+
+
+  animatePlayhead(
+    performance.now(),
+    buffer.duration
+  );
+}
+
+
+/* =========================================================
+   PLAYHEAD
+   ========================================================= */
+
+function animatePlayhead(
+  startTime,
+  duration
+) {
+
+  if (!isPlaying)
+    return;
+
+
+  const elapsed =
+    (
+      performance.now() -
+      startTime
+    ) / 1000;
+
+
+  const progress =
+    Math.min(
+      1,
+      elapsed / duration
+    );
+
+
+  drawPlayhead(
+    progress
+  );
+
+
+  if (
+    progress < 1 &&
+    isPlaying
+  ) {
+
+    animationFrame =
+      requestAnimationFrame(
+        () =>
+          animatePlayhead(
+            startTime,
+            duration
+          )
+      );
+  }
+}
+
+
+function drawPlayhead(
+  progress
+) {
+
+  if (!filteredImageData)
+    applyFilters();
+
+
+  if (filteredImageData) {
+
+    ctx.putImageData(
+      filteredImageData,
+      0,
+      0
+    );
+  }
+
+
+  const x =
+    progress *
+    canvas.width;
+
+
+  ctx.save();
+
+
+  ctx.strokeStyle =
+    "#e00000";
+
+  ctx.lineWidth = 2;
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    x,
+    0
+  );
+
+  ctx.lineTo(
+    x,
+    canvas.height
+  );
+
+  ctx.stroke();
+
+
+  ctx.restore();
+}
+
+
+/* =========================================================
+   STOP
+   ========================================================= */
+
+function stopAudio() {
+
+  isPlaying = false;
+
+
+  activeSources.forEach(
+    source => {
+
+      try {
+        source.stop();
+      }
+      catch (error) {
+        /* déjà arrêté */
+      }
+    }
+  );
+
+
+  activeSources = [];
+
+
+  if (animationFrame) {
+
+    cancelAnimationFrame(
+      animationFrame
+    );
+
+    animationFrame = null;
+  }
+
+
+  if (filteredImageData) {
+
+    ctx.putImageData(
+      filteredImageData,
+      0,
+      0
+    );
+  }
+
+
+  setStatus(
+    "Arrêt."
+  );
+}
+
+
+document
+  .getElementById("btn-play")
+  .addEventListener(
+    "click",
+    playAudio
+  );
+
+
+document
+  .getElementById("btn-stop")
+  .addEventListener(
+    "click",
+    stopAudio
+  );
+
+
+/* =========================================================
+   SPECTROGRAMME
+   ========================================================= */
+
+function drawSpectrogram() {
+
+  const modal =
+    document.getElementById(
+      "spectrogramModal"
+    );
+
+
+  if (!lastAudioBuffer) {
+
+    lastAudioBuffer =
+      createAudioBuffer();
+  }
+
+
+  if (!lastAudioBuffer)
+    return;
+
+
+  const specCanvas =
+    document.getElementById(
+      "spectrogramCanvas"
+    );
+
+
+  const specCtx =
+    specCanvas.getContext("2d");
+
+
+  const width =
+    specCanvas.width;
+
+  const height =
+    specCanvas.height;
+
+
+  specCtx.fillStyle =
+    "#000000";
+
+  specCtx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  const data =
+    lastAudioBuffer.getChannelData(
+      0
+    );
+
+
+  const fftSize = 1024;
+
+
+  for (
+    let x = 0;
+    x < width;
+    x++
+  ) {
+
+    const start =
+      Math.floor(
+        x / width *
+        Math.max(
+          1,
+          data.length - fftSize
+        )
+      );
+
+
+    for (
+      let y = 0;
+      y < height;
+      y++
+    ) {
+
+      const ratio =
+        1 -
+        y /
+        (height - 1);
+
+
+      const offset =
+        Math.floor(
+          ratio *
+          (fftSize - 1)
+        );
+
+
+      let energy = 0;
+
+
+      for (
+        let k = 0;
+        k < 8;
+        k++
+      ) {
+
+        const index =
+          start +
+          (
+            offset + k
+          ) % fftSize;
+
+
+        if (
+          index <
+          data.length
+        ) {
+
+          energy +=
+            Math.abs(
+              data[index]
+            );
+        }
+      }
+
+
+      energy /= 8;
+
+
+      const value =
+        Math.min(
+          255,
+          Math.floor(
+            energy * 900
+          )
+        );
+
+
+      specCtx.fillStyle =
+        `rgb(${value},${value},${value})`;
+
+
+      specCtx.fillRect(
+        x,
+        y,
+        1,
+        1
+      );
+    }
+  }
+
+
+  modal.classList.add(
+    "visible"
+  );
+}
+
+
+document
+  .getElementById(
+    "btn-spectrogram"
+  )
+  .addEventListener(
+    "click",
+    drawSpectrogram
+  );
+
+
+document
+  .getElementById(
+    "closeSpectrogram"
+  )
+  .addEventListener(
+    "click",
+    () =>
+      document
+        .getElementById(
+          "spectrogramModal"
+        )
+        .classList.remove(
+          "visible"
+        )
+  );
+
+
+document
+  .getElementById(
+    "spectrogramModal"
+  )
+  .addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        event.target === this
+      ) {
+
+        this.classList.remove(
+          "visible"
+        );
+      }
+    }
+  );
+
+
+/* =========================================================
+   INVALIDATION AUDIO
+   ========================================================= */
+
+[
+  "interpretation",
+  "scale",
+  "waveform",
+  "fmin",
+  "fmax",
+  "bins",
+  "mclarenFrequency"
+]
+.forEach(
+  id =>
+    document
+      .getElementById(id)
+      .addEventListener(
+        "change",
+        () => {
+          lastAudioBuffer = null;
+        }
+      )
+);
+
+
+[
+  "duration",
+  "volume",
+  "attack",
+  "release"
+]
+.forEach(
+  id =>
+    document
+      .getElementById(id)
+      .addEventListener(
+        "input",
+        () => {
+          lastAudioBuffer = null;
+        }
+      )
+);
+
+
+[
+  "contrast",
+  "brightness",
+  "bwMode",
+  "invert",
+  "invertFrequency"
+]
+.forEach(
+  id => {
+
+    document
+      .getElementById(id)
+      .addEventListener(
+        "input",
+        scheduleRender
+      );
+
+
+    document
+      .getElementById(id)
+      .addEventListener(
+        "change",
+        scheduleRender
+      );
+  }
+);
+
+
+/* =========================================================
+   RACCOURCIS
+   ========================================================= */
+
+document.addEventListener(
+  "keydown",
+  function(event) {
+
+    if (
+      event.code === "Space" &&
+      event.target.tagName !== "INPUT" &&
+      event.target.tagName !== "SELECT"
+    ) {
+
+      event.preventDefault();
+
+
+      if (isPlaying)
+        stopAudio();
+
+      else
+        playAudio();
+    }
+
+
+    if (
+      event.key === "Escape"
+    ) {
+
+      document
+        .getElementById(
+          "spectrogramModal"
+        )
+        .classList.remove(
+          "visible"
+        );
+    }
+  }
+);
+
+
+/* =========================================================
+   INITIALISATION
+   ========================================================= */
+
+applyFilters();
+
+setStatus(
+  "Dessinez avec le doigt ou la souris."
+);
+
+</script>
+
+</body>
+</html>
+```
