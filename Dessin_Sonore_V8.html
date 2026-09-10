@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Dessin Sonore — V8</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;touch-action:manipulation}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#1a1a1a;color:#e0e0e0;display:flex;flex-direction:column;min-height:100vh}
+header{background:#242424;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333}
+header h1{font-size:1rem;color:#fff}.version{font-size:.75rem;color:#888}
+.main-layout{display:flex;flex-direction:column;flex:1}
+@media(min-width:900px){.main-layout{flex-direction:row;height:calc(100vh - 48px)}}
+.workspace{flex:1;min-width:0;display:flex;flex-direction:column;background:#121212;padding:10px;gap:10px}
+.canvas-container{flex:1;min-height:300px;background:#000;border:1px solid #333;border-radius:6px;display:flex;flex-direction:column;overflow:hidden}
+.toolbar{display:flex;align-items:center;padding:8px 12px;background:#202020;border-bottom:1px solid #333;gap:10px;flex-wrap:wrap}
+.spacer{flex:1}button{font:inherit}button.tool-btn{background:#333;color:#eee;border:1px solid #555;border-radius:5px;padding:8px 10px;cursor:pointer;font-size:.85rem}
+button.tool-btn.active{background:#0055cc;border-color:#0077ff}
+.band-viewport{flex:1;overflow:auto;background:#080808;padding:10px}
+.canvas-stage{position:relative;width:max-content;min-width:800px;margin:0 auto;height:min(72vh,600px);min-height:300px}
+#paintCanvas,#readingCanvas{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:4px}
+#paintCanvas{background:#fff;touch-action:none;cursor:crosshair}
+#readingCanvas{pointer-events:none}
+.band-ruler{height:24px;position:relative;color:#888;font-size:11px;margin-top:4px;white-space:nowrap}
+.read-controls{display:flex;gap:8px;justify-content:center;padding:0 10px 10px}
+.sidebar{background:#222;padding:15px;display:flex;flex-direction:column;gap:15px;border-top:1px solid #333}
+@media(min-width:900px){.sidebar{width:360px;border-top:0;border-left:1px solid #333;overflow-y:auto}}
+.section-title{font-size:.8rem;font-weight:bold;color:#2196f3;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;border-bottom:1px solid #333;padding-bottom:4px}
+.control{display:flex;flex-direction:column;gap:4px}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+label{font-size:.85rem;color:#bbb;display:flex;justify-content:space-between}
+input[type=range]{accent-color:#2196f3;width:100%;height:25px}
+select,input[type=number]{background:#333;border:1px solid #555;color:#fff;padding:10px;border-radius:6px;font-size:.95rem;width:100%}
+.checkbox-label{display:flex;align-items:center;gap:8px;font-size:.85rem;color:#ccc;padding:4px 0}.checkbox-label input{width:20px;height:20px;accent-color:#2196f3}
+.btn-group{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+button.action-btn{padding:12px 8px;border:0;border-radius:6px;font-weight:bold;background:#333;color:#fff;font-size:.85rem;text-align:center;cursor:pointer}
+button.primary{background:#2e7d32}button.danger{background:#c62828}button.secondary{background:#1565c0}
+.engine-note{font-size:.78rem;color:#999;line-height:1.4;margin-top:4px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:100;justify-content:center;align-items:center;padding:20px}.modal.visible{display:flex}
+.modal-content{background:#222;border:1px solid #444;border-radius:8px;padding:15px;width:100%;max-width:1000px;max-height:94vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.crop-wrap{position:relative;width:100%;background:#050505;overflow:auto;text-align:center}
+#cropCanvas{display:block;max-width:100%;height:auto;margin:auto;touch-action:none}
+.crop-help{font-size:.8rem;color:#aaa}.modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+#waveformCanvas,#spectrogramCanvas{width:100%;display:block;background:#000;border:1px solid #444}
+</style>
+</head>
+<body>
+<header><h1>DESSIN SONORE</h1><span class="version">V8 — Conception : Emmanuel Camusat</span></header>
+
+<div class="main-layout">
+<div class="workspace">
+<div class="canvas-container">
+<div class="toolbar">
+<button class="tool-btn active" id="tool-draw">✏️ Crayon</button>
+<button class="tool-btn" id="tool-erase">🧽 Gomme</button>
+<div style="display:flex;align-items:center;gap:8px"><label style="white-space:nowrap">Épaisseur</label><input type="range" id="brush-size" min="1" max="50" value="6" style="width:110px"><span id="brush-val" style="font-size:.8rem">6</span></div>
+<div class="spacer"></div>
+<input type="file" id="file-input" accept="image/*" style="display:none">
+<button class="tool-btn" id="btn-browse">📂 Importer</button>
+<button class="tool-btn" id="btn-clear">⌫ Effacer</button>
+</div>
+<div class="band-viewport" id="bandViewport">
+<div class="canvas-stage" id="canvasStage">
+<canvas id="paintCanvas" width="800" height="600"></canvas>
+<canvas id="readingCanvas" width="800" height="600"></canvas>
+</div>
+<div class="band-ruler" id="bandRuler"></div>
+</div>
+<div class="read-controls">
+<button class="action-btn primary" id="btn-play-under">▶ Jouer</button>
+<button class="action-btn danger" id="btn-stop-under">■ Stop</button>
+</div>
+</div>
+</div>
+
+<div class="sidebar">
+<div>
+<div class="section-title">🌓 Traitement de l'image</div>
+<div class="control" style="margin-bottom:8px"><label>Contraste<span id="contrast-val">1.00</span></label><input type="range" id="contrast" min=".1" max="3" value="1" step=".05"></div>
+<div class="control"><label>Luminosité<span id="brightness-val">1.00</span></label><input type="range" id="brightness" min=".1" max="3" value="1" step=".05"></div>
+<div class="checkbox-label"><input type="checkbox" id="invert-bw">Inverser noir / blanc</div>
+</div>
+
+<div>
+<div class="section-title">🔊 Sonification</div>
+<div class="control" style="margin-bottom:10px"><label for="engine-select">Moteur</label>
+<select id="engine-select">
+<option value="spectral">Pixels — synthèse additive</option>
+<option value="contours">Contours — ligne mélodique</option>
+<option value="mclaren">Lecture optique — bande V8</option>
+<option value="density">Masse — densité optique</option>
+</select></div>
+<div class="control" id="gamme-group" style="margin-bottom:10px"><label for="scale-select">Gamme</label>
+<select id="scale-select"><option value="free">Libre</option><option value="chromatic">Chromatique</option><option value="major">Majeure</option><option value="minor">Mineure</option><option value="pentatonic">Pentatonique</option></select></div>
+<div class="control" style="margin-bottom:10px"><label>Durée<span><span id="duration-val">4</span> s</span></label><input type="range" id="duration" min=".5" max="120" value="4" step=".5"></div>
+<div class="control" style="margin-bottom:10px"><label>Volume<span id="volume-val">65%</span></label><input type="range" id="volume" min="0" max="1" value=".65" step=".01"></div>
+<div class="checkbox-label" style="margin-bottom:10px"><input type="checkbox" id="invert-freq">↕ Inverser (haut = grave)</div>
+<div id="freq-range-group" class="grid-2" style="margin-bottom:8px"><div class="control"><label>Freq min (Hz)</label><input type="number" id="fmin" value="80"></div><div class="control"><label>Freq max (Hz)</label><input type="number" id="fmax" value="4000"></div></div>
+<div id="bins-group" class="control" style="margin-bottom:10px"><label>Résolution fréq.<span id="bins-val">40</span></label><input type="range" id="nbins" min="10" max="100" value="40"></div>
+<div id="mass-group" class="control" style="margin-bottom:10px;display:none"><label>Richesse harmonique<span id="richness-val">0.55</span></label><input type="range" id="mass-richness" min="0" max="1" value=".55" step=".01"></div>
+<div class="engine-note" id="engine-note"></div>
+</div>
+
+<div>
+<div class="section-title">Actions</div>
+<div class="btn-group">
+<button class="action-btn primary" id="btn-play">▶ Jouer</button>
+<button class="action-btn danger" id="btn-stop">■ Stop</button>
+<button class="action-btn secondary" id="btn-export">💾 Export WAV</button>
+<button class="action-btn secondary" id="btn-spectrogram">📊 Analyse</button>
+<button class="action-btn" id="btn-clear-2">⌫ Effacer</button>
+</div>
+</div>
+<div id="status-bar" style="font-size:.8rem;color:#aaa">Prêt.</div>
+</div>
+</div>
+
+<!-- CROP -->
+<div class="modal" id="crop-modal">
+<div class="modal-content">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>✂ Recadrer l'image</h3><button class="action-btn danger" id="crop-cancel">✕</button></div>
+<div class="crop-help">Trace un rectangle sur l'image. Le recadrage est libre, sans ratio imposé.</div>
+<div class="crop-wrap"><canvas id="cropCanvas" width="900" height="600"></canvas></div>
+<div class="modal-actions"><button class="action-btn" id="crop-reset">↺ Tout sélectionner</button><button class="action-btn primary" id="crop-apply">✓ Valider le recadrage</button></div>
+</div>
+</div>
+
+<!-- ANALYSE -->
+<div class="modal" id="modal-spectro">
+<div class="modal-content">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>Analyse du signal</h3><button class="action-btn danger" id="btn-close-modal">✕</button></div>
+<div style="font-size:.78rem;color:#999">Forme d'onde et spectrogramme calculés à partir du dernier son généré.</div>
+<canvas id="waveformCanvas" width="900" height="140"></canvas>
+<canvas id="spectrogramCanvas" width="900" height="360"></canvas>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const on=(id,ev,fn)=>$(id).addEventListener(ev,fn);
+
+const paintCanvas=$('paintCanvas');
+const pCtx=paintCanvas.getContext('2d',{willReadFrequently:true});
+const rawCanvas=document.createElement('canvas');
+rawCanvas.width=800;rawCanvas.height=600;
+const rawCtx=rawCanvas.getContext('2d',{willReadFrequently:true});
+const readingCanvas=$('readingCanvas');
+const readingCtx=readingCanvas.getContext('2d');
+
+let pixelsCache=null, analysisCache=new Map(), opticalCache=null;
+let isErasing=false,drawing=false,activePointerId=null,lastX=0,lastY=0;
+let audioCtx=null,currentSource=null,currentGain=null,lastAudioBuffer=null;
+let animationFrame=null,playbackStartedAt=0,playbackDuration=0;
+
+function invalidateCaches(){pixelsCache=null;analysisCache.clear();opticalCache=null;lastAudioBuffer=null}
+function clearReadingLine(){readingCtx.clearRect(0,0,readingCanvas.width,readingCanvas.height)}
+function drawReadingLine(frac){
+  clearReadingLine(); const x=Math.max(0,Math.min(1,frac))*readingCanvas.width;
+  readingCtx.strokeStyle='#ff0044';readingCtx.lineWidth=2;readingCtx.beginPath();readingCtx.moveTo(x,0);readingCtx.lineTo(x,readingCanvas.height);readingCtx.stroke();
+}
+function animateReadingLine(){
+  if(!currentSource||!playbackDuration){clearReadingLine();animationFrame=null;return}
+  const p=Math.min(1,(performance.now()-playbackStartedAt)/1000/playbackDuration);drawReadingLine(p);
+  if(p<1)animationFrame=requestAnimationFrame(animateReadingLine);else animationFrame=null;
+}
+function startReadingAnimation(){if(animationFrame)cancelAnimationFrame(animationFrame);playbackStartedAt=performance.now();animationFrame=requestAnimationFrame(animateReadingLine)}
+function stopReadingAnimation(){if(animationFrame)cancelAnimationFrame(animationFrame);animationFrame=null;clearReadingLine()}
+
+function fillWhite(ctx,w,h){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h)}
+fillWhite(pCtx,800,600);fillWhite(rawCtx,800,600);
+
+function resizeBand(width){
+  width=Math.max(800,Math.ceil(width));
+  if(width<=paintCanvas.width)return;
+  const old=document.createElement('canvas');old.width=paintCanvas.width;old.height=600;
+  old.getContext('2d').drawImage(paintCanvas,0,0);
+  const oldRaw=document.createElement('canvas');oldRaw.width=rawCanvas.width;oldRaw.height=600;
+  oldRaw.getContext('2d').drawImage(rawCanvas,0,0);
+  paintCanvas.width=width;paintCanvas.height=600;readingCanvas.width=width;readingCanvas.height=600;
+  rawCanvas.width=width;rawCanvas.height=600;
+  fillWhite(pCtx,width,600);fillWhite(rawCtx,width,600);
+  pCtx.drawImage(old,0,0);rawCtx.drawImage(oldRaw,0,0);
+  $('canvasStage').style.width=width+'px';$('canvasStage').style.height='min(72vh,600px)';
+  invalidateCaches();updateRuler();
+}
+function desiredBandWidth(){return Math.max(800,Math.round(parseFloat($('duration').value)*240))}
+function updateRuler(){
+  const r=$('bandRuler');r.innerHTML='';
+  const w=paintCanvas.width,dur=parseFloat($('duration').value),step=5;
+  for(let s=0;s<=dur+.001;s+=step){
+    const x=s/dur*w;const m=document.createElement('span');
+    m.textContent=s+' s';m.style.position='absolute';m.style.left=x+'px';m.style.transform='translateX(-50%)';r.appendChild(m);
+  }
+  r.style.width=w+'px';
+}
+on('duration','input',e=>{
+  $('duration-val').textContent=e.target.value;
+  if($('engine-select').value==='mclaren')resizeBand(desiredBandWidth());
+  updateRuler();
+});
+
+function getPixels(){
+  if(!pixelsCache)pixelsCache=pCtx.getImageData(0,0,paintCanvas.width,paintCanvas.height);
+  return pixelsCache.data;
+}
+function applyFilters(){
+  const contrast=parseFloat($('contrast').value),brightness=parseFloat($('brightness').value),inv=$('invert-bw').checked;
+  const src=rawCtx.getImageData(0,0,rawCanvas.width,rawCanvas.height),d=src.data;
+  for(let i=0;i<d.length;i+=4){
+    let g=(d[i]+d[i+1]+d[i+2])/3;
+    g=((g-128)*contrast+128)*brightness;g=Math.max(0,Math.min(255,g));if(inv)g=255-g;
+    d[i]=d[i+1]=d[i+2]=g;
+  }
+  pCtx.putImageData(src,0,0);invalidateCaches();
+}
+on('contrast','input',e=>{$('contrast-val').textContent=parseFloat(e.target.value).toFixed(2);applyFilters()});
+on('brightness','input',e=>{$('brightness-val').textContent=parseFloat(e.target.value).toFixed(2);applyFilters()});
+on('invert-bw','change',applyFilters);
+
+function getPos(e){
+  const r=paintCanvas.getBoundingClientRect();
+  return{x:(e.clientX-r.left)*paintCanvas.width/r.width,y:(e.clientY-r.top)*paintCanvas.height/r.height};
+}
+function dotBoth(p,size){
+  for(const ctx of [pCtx,rawCtx]){ctx.beginPath();ctx.arc(p.x,p.y,size/2,0,Math.PI*2);ctx.fillStyle=isErasing?'#fff':'#000';ctx.fill()}
+}
+function lineBoth(a,b,size){
+  for(const ctx of [pCtx,rawCtx]){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=size;ctx.strokeStyle=isErasing?'#fff':'#000';ctx.stroke()}
+}
+function down(e){e.preventDefault();drawing=true;activePointerId=e.pointerId;try{paintCanvas.setPointerCapture(e.pointerId)}catch(_){}const p=getPos(e);lastX=p.x;lastY=p.y;dotBoth(p,+$('brush-size').value)}
+function move(e){if(!drawing||e.pointerId!==activePointerId)return;e.preventDefault();const p=getPos(e);lineBoth({x:lastX,y:lastY},p,+$('brush-size').value);lastX=p.x;lastY=p.y}
+function up(e){if(e.pointerId!==activePointerId)return;drawing=false;activePointerId=null;try{paintCanvas.releasePointerCapture(e.pointerId)}catch(_){}applyFilters()}
+paintCanvas.addEventListener('pointerdown',down,{passive:false});paintCanvas.addEventListener('pointermove',move,{passive:false});paintCanvas.addEventListener('pointerup',up,{passive:false});paintCanvas.addEventListener('pointercancel',up,{passive:false});
+on('brush-size','input',e=>$('brush-val').textContent=e.target.value);
+on('tool-draw','click',()=>{isErasing=false;$('tool-draw').classList.add('active');$('tool-erase').classList.remove('active')});
+on('tool-erase','click',()=>{isErasing=true;$('tool-erase').classList.add('active');$('tool-draw').classList.remove('active')});
+
+function clearAll(){stopAudio();fillWhite(pCtx,paintCanvas.width,600);fillWhite(rawCtx,rawCanvas.width,600);invalidateCaches();$('file-input').value='';$('status-bar').textContent='Dessin effacé.'}
+on('btn-clear','click',clearAll);on('btn-clear-2','click',clearAll);
+
+/* ---------- IMPORT + RECADRAGE ---------- */
+const fileInput=$('file-input'),cropCanvas=$('cropCanvas'),cropCtx=cropCanvas.getContext('2d');
+let cropImage=null,cropDisplay={x:0,y:0,w:0,h:0},cropRect=null,cropDrag=false,cropStart=null;
+on('btn-browse','click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=ev=>{const img=new Image();img.onload=()=>openCrop(img);img.src=ev.target.result};rd.readAsDataURL(f);
+});
+function openCrop(img){
+  cropImage=img;
+  const maxW=900,maxH=600,sc=Math.min(maxW/img.width,maxH/img.height,1);
+  cropDisplay={x:(maxW-img.width*sc)/2,y:(maxH-img.height*sc)/2,w:img.width*sc,h:img.height*sc};
+  cropRect={x:cropDisplay.x,y:cropDisplay.y,w:cropDisplay.w,h:cropDisplay.h};
+  cropCanvas.width=maxW;cropCanvas.height=maxH;drawCrop();$('crop-modal').classList.add('visible');
+}
+function drawCrop(){
+  cropCtx.fillStyle='#050505';cropCtx.fillRect(0,0,cropCanvas.width,cropCanvas.height);
+  cropCtx.drawImage(cropImage,cropDisplay.x,cropDisplay.y,cropDisplay.w,cropDisplay.h);
+  if(!cropRect)return;
+  cropCtx.fillStyle='rgba(0,0,0,.55)';
+  cropCtx.fillRect(0,0,cropCanvas.width,cropCanvas.height);
+  cropCtx.clearRect(cropRect.x,cropRect.y,cropRect.w,cropRect.h);
+  cropCtx.drawImage(cropImage,cropDisplay.x,cropDisplay.y,cropDisplay.w,cropDisplay.h);
+  cropCtx.fillStyle='rgba(255,255,255,.10)';cropCtx.fillRect(cropRect.x,cropRect.y,cropRect.w,cropRect.h);
+  cropCtx.strokeStyle='#00aaff';cropCtx.lineWidth=2;cropCtx.strokeRect(cropRect.x,cropRect.y,cropRect.w,cropRect.h);
+}
+function cropPos(e){const r=cropCanvas.getBoundingClientRect();return{x:(e.clientX-r.left)*cropCanvas.width/r.width,y:(e.clientY-r.top)*cropCanvas.height/r.height}}
+cropCanvas.addEventListener('pointerdown',e=>{const p=cropPos(e);if(p.x>=cropDisplay.x&&p.x<=cropDisplay.x+cropDisplay.w&&p.y>=cropDisplay.y&&p.y<=cropDisplay.y+cropDisplay.h){cropDrag=true;cropStart=p;cropRect={x:p.x,y:p.y,w:0,h:0};cropCanvas.setPointerCapture(e.pointerId)}});
+cropCanvas.addEventListener('pointermove',e=>{if(!cropDrag)return;const p=cropPos(e);let x=Math.max(cropDisplay.x,Math.min(p.x,cropDisplay.x+cropDisplay.w)),y=Math.max(cropDisplay.y,Math.min(p.y,cropDisplay.y+cropDisplay.h));cropRect={x:Math.min(cropStart.x,x),y:Math.min(cropStart.y,y),w:Math.abs(x-cropStart.x),h:Math.abs(y-cropStart.y)};drawCrop()});
+cropCanvas.addEventListener('pointerup',e=>{cropDrag=false;try{cropCanvas.releasePointerCapture(e.pointerId)}catch(_){}});
+on('crop-reset',()=>{cropRect={...cropDisplay};drawCrop()});
+on('crop-cancel',()=>{$('crop-modal').classList.remove('visible');fileInput.value=''});
+on('crop-apply',()=>{
+  if(!cropRect||cropRect.w<2||cropRect.h<2)return;
+  const sx=(cropRect.x-cropDisplay.x)/cropDisplay.w*cropImage.width,sy=(cropRect.y-cropDisplay.y)/cropDisplay.h*cropImage.height;
+  const sw=cropRect.w/cropDisplay.w*cropImage.width,sh=cropRect.h/cropDisplay.h*cropImage.height;
+  const bandW=paintCanvas.width;
+  rawCtx.clearRect(0,0,rawCanvas.width,600);fillWhite(rawCtx,rawCanvas.width,600);
+  const sc=Math.min(bandW/sw,600/sh),dw=sw*sc,dh=sh*sc;
+  rawCtx.drawImage(cropImage,sx,sy,sw,sh,0,(600-dh)/2,dw,dh);
+  applyFilters();$('crop-modal').classList.remove('visible');$('status-bar').textContent='Image recadrée et importée.';fileInput.value='';
+});
+
+/* ---------- ENGINES ---------- */
+function freqFromY(y,h,fmin,fmax,scale){
+  let f=fmin*Math.pow(fmax/fmin,1-y/(h-1));if(scale==='free')return f;
+  let midi=69+12*Math.log2(f/440);if(scale==='chromatic')return 440*Math.pow(2,(Math.round(midi)-69)/12);
+  const sets={major:[0,2,4,5,7,9,11],minor:[0,2,3,5,7,8,10],pentatonic:[0,2,4,7,9]},ints=sets[scale]||sets.major;
+  const oct=Math.floor(midi/12),pc=((midi%12)+12)%12;let best=ints[0];for(const n of ints)if(Math.abs(n-pc)<Math.abs(best-pc))best=n;
+  return 440*Math.pow(2,(oct*12+best-69)/12);
+}
+function getFullInk(){const d=getPixels(),w=paintCanvas.width,h=600,ink=new Float32Array(w*h);let any=false;for(let i=0,j=0;i<d.length;i+=4,j++){const v=1-d[i]/255;ink[j]=v;if(v>.03)any=true}return{ink,w,h,any}}
+function getAnalysisImage(cols,rows){
+  const key=cols+'x'+rows;if(analysisCache.has(key))return analysisCache.get(key);
+  const d=getPixels(),W=paintCanvas.width,H=600,ink=new Float32Array(cols*rows);let any=false;
+  for(let x=0;x<cols;x++){const sx=Math.min(W-1,Math.floor(x*(W-1)/Math.max(1,cols-1)));for(let y=0;y<rows;y++){const sy=Math.min(H-1,Math.floor(y*(H-1)/Math.max(1,rows-1)));const v=1-d[(sy*W+sx)*4]/255;ink[y*cols+x]=v;if(v>.03)any=true}}
+  const r={ink,cols,rows,any};analysisCache.set(key,r);return r;
+}
+function sample(img,x,y){x=Math.max(0,Math.min(img.cols-1,x));y=Math.max(0,Math.min(img.rows-1,y));return img.ink[y*img.cols+x]}
+function makeSpectral(ac,dur,full,o){
+  const len=Math.floor(ac.sampleRate*dur),out=new Float32Array(len),{fmin,fmax,nBins,invert,scale}=o,sr=ac.sampleRate;
+  for(let b=0;b<nBins;b++){let rf=b/(nBins-1||1);if(invert)rf=1-rf;const y=Math.round(rf*(full.h-1)),f=freqFromY(y,full.h,fmin,fmax,scale),inc=2*Math.PI*f/sr;let ph=0;
+    for(let i=0;i<len;i++){const x=Math.floor(i/len*(full.w-1)),v=full.ink[y*full.w+x];ph+=inc;if(v>.15)out[i]+=Math.sin(ph)*v*(.5/nBins)}
+  }return out;
+}
+function contourPath(img){const ys=new Array(img.cols).fill(null),amps=new Float32Array(img.cols);let prev=null;for(let x=0;x<img.cols;x++){let bestY=null,bestV=.08;for(let y=0;y<img.rows;y++){const v=sample(img,x,y);if(v>bestV&&(prev===null||Math.abs(y-prev)<img.rows*.35)){bestV=v;bestY=y}}if(bestY===null){prev=null;continue}ys[x]=bestY;amps[x]=bestV;prev=bestY}return{ys,amps}}
+function makeContours(ac,dur,img,o){
+  const path=contourPath(img),len=Math.floor(ac.sampleRate*dur),out=new Float32Array(len),sr=ac.sampleRate;let phase=0,fcur=null;
+  for(let i=0;i<len;i++){const p=i/(len-1||1)*(img.cols-1),x=Math.floor(p),t=p-x,y1=path.ys[x],y2=path.ys[Math.min(img.cols-1,x+1)];if(y1===null&&y2===null){out[i]=0;fcur=null;continue}
+    let y=y1===null?y2:y2===null?y1:y1+(y2-y1)*t;if(o.invert)y=img.rows-1-y;const f=freqFromY(y*599/(img.rows-1),600,o.fmin,o.fmax,o.scale);fcur=fcur===null?f:fcur+(f-fcur)*.012;phase+=2*Math.PI*fcur/sr;const a=(path.amps[x]+path.amps[Math.min(img.cols-1,x+1)]*(1-t))*t+path.amps[x]*(1-t);out[i]=Math.sin(phase)*a*.65}return out;
+}
+function makeMass(ac,dur,img,o){
+  const den=new Float32Array(img.cols),center=new Float32Array(img.cols);
+  for(let x=0;x<img.cols;x++){let s=0,wy=0;for(let y=0;y<img.rows;y++){const v=sample(img,x,y);s+=v;wy+=v*y}den[x]=s/img.rows;center[x]=s?wy/s:(img.rows-1)/2}
+  const len=Math.floor(ac.sampleRate*dur),out=new Float32Array(len),ph=[0,0,0,0],sr=ac.sampleRate;let env=0;
+  for(let i=0;i<len;i++){const p=i/(len-1||1)*(img.cols-1),x=Math.floor(p),t=p-x,x2=Math.min(img.cols-1,x+1),d=den[x]+(den[x2]-den[x])*t;let cy=center[x]+(center[x2]-center[x])*t;if(o.invert)cy=img.rows-1-cy;const f=freqFromY(cy*599/(img.rows-1),600,o.fmin,o.fmax,o.scale);env+=(Math.max(d,.002)-env)*.0025;const ratios=[1,2,1.5,3],weights=[1,.22+o.richness*.18,.12+o.richness*.12,.05+o.richness*.1];let s=0;for(let h=0;h<4;h++){ph[h]+=2*Math.PI*f*ratios[h]/sr;s+=Math.sin(ph[h])*weights[h]}out[i]=s/(1.5+o.richness*.5)*Math.min(.8,env*4)}return out;
+}
+
+/* ---------- OPTIQUE V8 ---------- */
+function opticalProfile(){
+  if(opticalCache)return opticalCache;
+  const d=getPixels(),W=paintCanvas.width,H=600,p=new Float32Array(W);
+  for(let x=0;x<W;x++){let s=0;for(let y=0;y<H;y++)s+=1-d[(y*W+x)*4]/255;p[x]=s/H}
+  opticalCache=p;return p;
+}
+function makeOptical(ac,dur){
+  const src=opticalProfile(),N=src.length,len=Math.floor(ac.sampleRate*dur),out=new Float32Array(len),sr=ac.sampleRate;
+  if(!src.some(v=>v>.01))return null;
+  /*
+    V8 : le signal vient des variations spatiales.
+    On utilise une dérivée locale à plusieurs échelles.
+    Cela évite de transformer une zone noire uniforme en
+    oscillateur artificiel, tout en conservant la matière
+    créée par ses bords et ses changements de densité.
+  */
+  for(let i=0;i<len;i++){
+    const pos=i/(len-1||1)*(N-1),x=Math.floor(pos),t=pos-x;
+    const x0=Math.max(0,x-1),x1=Math.min(N-1,x+1),x2=Math.min(N-1,x+3);
+    const v0=src[x0],v1=src[x],v2=src[x1],v3=src[x2];
+    const local=(v2-v0)*.5;
+    const fine=v2-v1;
+    const broad=v3-v1;
+    out[i]=local*.95+fine*.45+broad*.18;
+  }
+  /* accentuation douce des structures rapprochées sans porteuse */
+  let peak=0;for(const v of out)peak=Math.max(peak,Math.abs(v));
+  if(peak<1e-7)return null;
+  const gain=Math.min(6,.8/peak);for(let i=0;i<len;i++)out[i]=Math.tanh(out[i]*gain);
+  const a=Math.min(Math.floor(sr*.02),Math.floor(len*.04)),r=Math.min(Math.floor(sr*.04),Math.floor(len*.06));
+  for(let i=0;i<a;i++)out[i]*=i/Math.max(1,a);for(let i=0;i<r;i++)out[len-1-i]*=i/Math.max(1,r);
+  return out;
+}
+function fadeNormalize(out,sr){
+  if(!out)return;let peak=0;for(const v of out)peak=Math.max(peak,Math.abs(v));if(peak<1e-8)return;
+  const g=Math.min(4,.85/peak);for(let i=0;i<out.length;i++)out[i]*=g;
+}
+function generateAudio(){
+  const ac=ensureAudio(),dur=parseFloat($('duration').value),engine=$('engine-select').value,invert=$('invert-freq').checked,scale=$('scale-select').value,fmin=parseFloat($('fmin').value)||80,fmax=parseFloat($('fmax').value)||4000;
+  let out;
+  if(engine==='spectral'){const full=getFullInk();if(!full.any)return null;out=makeSpectral(ac,dur,full,{fmin,fmax,nBins:+$('nbins').value||40,invert,scale})}
+  else if(engine==='contours'){const img=getAnalysisImage(500,140);if(!img.any)return null;out=makeContours(ac,dur,img,{fmin,fmax,scale,invert})}
+  else if(engine==='mclaren'){if(paintCanvas.width<desiredBandWidth())resizeBand(desiredBandWidth());out=makeOptical(ac,dur)}
+  else {const img=getAnalysisImage(500,140);if(!img.any)return null;out=makeMass(ac,dur,img,{fmin,fmax,scale,richness:+$('mass-richness').value,invert})}
+  if(!out)return null;fadeNormalize(out,ac.sampleRate);
+  const b=ac.createBuffer(1,out.length,ac.sampleRate);b.getChannelData(0).set(out);lastAudioBuffer=b;return b;
+}
+function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}
+function stopAudio(){stopReadingAnimation();if(currentSource){try{currentSource.onended=null;currentSource.stop()}catch(_){}currentSource=null}currentGain=null;$('status-bar').textContent='■ Arrêté.'}
+function playAudio(){stopAudio();$('status-bar').textContent="⏳ Calcul de l'audio…";setTimeout(()=>{const b=generateAudio();if(!b){$('status-bar').textContent='Le dessin est vide ou trop uniforme.';return}const ac=ensureAudio(),s=ac.createBufferSource(),g=ac.createGain();s.buffer=b;g.gain.value=+$('volume').value;s.connect(g);g.connect(ac.destination);currentSource=s;currentGain=g;playbackDuration=b.duration;s.onended=()=>{if(currentSource===s){currentSource=null;currentGain=null;stopReadingAnimation();$('status-bar').textContent='Lecture terminée.'}};s.start();$('status-bar').textContent='▶ Lecture en cours — '+$('engine-select').selectedOptions[0].text;startReadingAnimation()},20)}
+on('btn-play','click',playAudio);on('btn-play-under','click',playAudio);on('btn-stop','click',stopAudio);on('btn-stop-under','click',stopAudio);
+on('volume','input',e=>{$('volume-val').textContent=Math.round(e.target.value*100)+'%';if(currentGain)currentGain.gain.value=+e.target.value});
+on('nbins','input',e=>$('bins-val').textContent=e.target.value);on('mass-richness','input',e=>$('richness-val').textContent=(+e.target.value).toFixed(2));
+
+const notes={
+ spectral:"Chaque ligne horizontale devient un oscillateur. Le dessin dense produit un accord riche.",
+ contours:"Le moteur suit une ligne dominante de gauche à droite pour produire une mélodie continue.",
+ mclaren:"Lecture optique V8 : la bande est parcourue réellement de gauche à droite. Les variations spatiales produisent le signal ; aucune porteuse n'est ajoutée.",
+ density:"La quantité d'encre par colonne devient une masse sonore continue."
+};
+function updateEngineUI(){const e=$('engine-select').value;$('freq-range-group').style.display=e==='mclaren'?'none':'grid';$('gamme-group').style.display=e==='mclaren'?'none':'flex';$('bins-group').style.display=e==='spectral'?'flex':'none';$('mass-group').style.display=e==='density'?'flex':'none';$('engine-note').textContent=notes[e];if(e==='mclaren'){resizeBand(desiredBandWidth());$('bandViewport').scrollLeft=0}updateRuler()}
+on('engine-select','change',updateEngineUI);
+
+/* ---------- WAV ---------- */
+function bufferToWav(buffer){
+  const data=buffer.getChannelData(0),sr=buffer.sampleRate,bits=16,ch=1,block=ch*bits/8,bytes=data.length*block,ab=new ArrayBuffer(44+bytes),v=new DataView(ab);
+  const str=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+  str(0,'RIFF');v.setUint32(4,36+bytes,true);str(8,'WAVE');str(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,ch,true);v.setUint32(24,sr,true);v.setUint32(28,sr*block,true);v.setUint16(32,block,true);v.setUint16(34,bits,true);str(36,'data');v.setUint32(40,bytes,true);
+  let o=44;for(let i=0;i<data.length;i++,o+=2){let x=Math.max(-1,Math.min(1,data[i]));v.setInt16(o,x<0?x*32768:x*32767,true)}return new Blob([ab],{type:'audio/wav'})
+}
+on('btn-export','click',()=>{
+  $('status-bar').textContent="⏳ Préparation du WAV…";
+  setTimeout(()=>{
+    const b=lastAudioBuffer||generateAudio();if(!b){$('status-bar').textContent='Aucun son à exporter.';return}
+    const a=document.createElement('a'),url=URL.createObjectURL(bufferToWav(b));a.href=url;
+    const now=new Date(),stamp=now.toISOString().slice(0,19).replace(/[:T]/g,'-');a.download='dessin-sonore-'+stamp+'.wav';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    $('status-bar').textContent='WAV exporté.'
+  },20)
+});
+
+/* ---------- ANALYSE ---------- */
+function drawWaveform(data){const c=$('waveformCanvas'),g=c.getContext('2d'),w=c.width,h=c.height;g.fillStyle='#050505';g.fillRect(0,0,w,h);g.strokeStyle='#2196f3';g.beginPath();for(let x=0;x<w;x++){const a=Math.floor(x*data.length/w),b=Math.max(a+1,Math.floor((x+1)*data.length/w));let mn=1,mx=-1;for(let i=a;i<b;i++){mn=Math.min(mn,data[i]);mx=Math.max(mx,data[i])}g.moveTo(x,(1-mx)*h/2);g.lineTo(x,(1-mn)*h/2)}g.stroke()}
+function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]]}}for(let len=2;len<=n;len<<=1){const a=-2*Math.PI/len,w0=Math.cos(a),wi0=Math.sin(a);for(let i=0;i<n;i+=len){let wr=1,wi=0;for(let j=0;j<len/2;j++){const ur=re[i+j],ui=im[i+j],vr=re[i+j+len/2]*wr-im[i+j+len/2]*wi,vi=re[i+j+len/2]*wi+im[i+j+len/2]*wr;re[i+j]=ur+vr;im[i+j]=ui+vi;re[i+j+len/2]=ur-vr;im[i+j+len/2]=ui-vi;const nr=wr*w0-wi*wi0;wi=wr*wi0+wi*w0;wr=nr}}}}
+function spectroColor(t){const s=[[5,5,15],[25,20,110],[10,160,190],[255,220,40],[255,60,20]],p=Math.max(0,Math.min(1,t))*(s.length-1),i=Math.min(s.length-2,Math.floor(p)),f=p-i;return s[i].map((v,k)=>Math.round(v+(s[i+1][k]-v)*f))}
+function drawSpectrogram(data,sr){
+  const c=$('spectrogramCanvas'),g=c.getContext('2d'),W=c.width,H=c.height,axis=46;g.fillStyle='#000';g.fillRect(0,0,W,H);
+  const fs=1024,hop=256,num=Math.max(1,Math.floor((data.length-fs)/hop)),frames=Math.min(W-axis,num),win=new Float64Array(fs);for(let n=0;n<fs;n++)win[n]=.5-.5*Math.cos(2*Math.PI*n/(fs-1));
+  const spec=[];let max=1e-9;for(let fx=0;fx<frames;fx++){const st=Math.floor(fx*num/frames)*hop,re=new Float64Array(fs),im=new Float64Array(fs);for(let n=0;n<fs;n++)re[n]=(data[st+n]||0)*win[n];fft(re,im);const bins=new Float32Array(fs/2);for(let k=0;k<fs/2;k++){const m=Math.hypot(re[k],im[k]);bins[k]=m;if(m>max)max=m}spec.push(bins)}
+  const minF=40,maxF=Math.min(sr/2,5000),lm=Math.log(minF),lx=Math.log(maxF),cw=Math.max(1,Math.ceil((W-axis)/Math.max(1,spec.length)));
+  for(let x=0;x<spec.length;x++)for(let y=0;y<H;y++){const f=Math.exp(lm+(1-y/(H-1))*(lx-lm)),k=Math.min(spec[x].length-1,Math.max(0,Math.round(f/(sr/fs)))),db=20*Math.log10((spec[x][k]+1e-9)/max),n=Math.max(0,Math.min(1,(db+55)/55)),co=spectroColor(n);g.fillStyle=`rgb(${co[0]},${co[1]},${co[2]})`;g.fillRect(axis+x*cw,y,cw,1)}
+  g.fillStyle='#000';g.fillRect(0,0,axis,H);g.strokeStyle='#333';g.fillStyle='#999';g.font='10px sans-serif';g.textAlign='right';for(const f of [100,200,500,1000,2000,4000])if(f>=minF&&f<=maxF){const frac=(Math.log(f)-lm)/(lx-lm),y=H-1-frac*(H-1);g.beginPath();g.moveTo(axis,y);g.lineTo(W,y);g.stroke();g.fillText(f+' Hz',axis-4,y+3)}
+}
+const modal=$('modal-spectro');on('btn-spectrogram','click',()=>{const b=lastAudioBuffer||generateAudio();if(!b){$('status-bar').textContent='Aucun dessin à analyser.';return}drawWaveform(b.getChannelData(0));drawSpectrogram(b.getChannelData(0),b.sampleRate);modal.classList.add('visible')});on('btn-close-modal','click',()=>modal.classList.remove('visible'));modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('visible')});
+
+updateEngineUI();updateRuler();
+</script>
+</body>
+</html>
